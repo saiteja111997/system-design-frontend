@@ -1,0 +1,108 @@
+/* Workflow Animation Styles */
+
+/* Flow animations for edges */
+@keyframes flowAnimation {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -20;
+    opacity: 0.4;
+  }
+}
+
+/* Database node glow animations */
+@keyframes databaseGlowBlue {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(14, 165, 233, 0.5),
+      0 0 15px rgba(14, 165, 233, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.8),
+      0 0 25px rgba(14, 165, 233, 0.6);
+  }
+}
+
+@keyframes databaseGlowYellow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(250, 204, 21, 0.5),
+      0 0 15px rgba(250, 204, 21, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.8),
+      0 0 25px rgba(250, 204, 21, 0.6);
+  }
+}
+
+@keyframes databaseGlowRed {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(220, 38, 38, 0.5), 0 0 15px rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.8), 0 0 25px rgba(220, 38, 38, 0.6);
+  }
+}
+
+/* Dot pulse animation */
+@keyframes dotPulse {
+  0%,
+  100% {
+    r: 3;
+    opacity: 0.5;
+  }
+  50% {
+    r: 5;
+    opacity: 1;
+  }
+}
+
+/* Edge animation classes */
+.animated-edge {
+  stroke-dasharray: 5 15;
+  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.6));
+}
+
+.animated-edge-yellow {
+  stroke-dasharray: 5 15;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+}
+
+.animated-edge-red {
+  stroke-dasharray: 5 15;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+}
+
+/* Database glow classes */
+.database-glow-blue {
+  animation: databaseGlowBlue 1.5s ease-in-out infinite;
+}
+
+.database-glow-yellow {
+  animation: databaseGlowYellow 1s ease-in-out infinite;
+}
+
+.database-glow-red {
+  animation: databaseGlowRed .6s ease-in-out infinite;
+}
+
+/* Pulse dot class */
+.pulse-dot {
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+/* Dynamic animation duration classes - will be applied via CSS variables */
+.animated-edge,
+.animated-edge-yellow,
+.animated-edge-red {
+  animation-name: flowAnimation;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--flow-animation-duration, 2s);
+}
