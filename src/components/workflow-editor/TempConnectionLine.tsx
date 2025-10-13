@@ -1,9 +1,5 @@
 import React from "react";
-import { TempLine } from "@/types/workflow";
-
-interface TempConnectionLineProps {
-  tempLine: TempLine;
-}
+import { TempConnectionLineProps } from "@/types/workflow-editor/components";
 
 export const TempConnectionLine: React.FC<TempConnectionLineProps> = ({
   tempLine,
@@ -13,7 +9,7 @@ export const TempConnectionLine: React.FC<TempConnectionLineProps> = ({
       <path
         d={`M${tempLine.x1},${tempLine.y1} Q${
           (tempLine.x1 + tempLine.x2) / 2
-        },${(tempLine.y1 + tempLine.y2) / 2 + 30} ${tempLine.x2},${
+        },${(tempLine.y1 + tempLine.y2) / 3 + 30} ${tempLine.x2},${
           tempLine.y2
         }`}
         stroke="#f97316"

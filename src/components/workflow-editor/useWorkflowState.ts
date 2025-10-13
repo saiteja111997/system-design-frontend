@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Node, Edge, TempLine, DragOffset } from "@/types/workflow";
+import {
+  Node,
+  Edge,
+  TempLine,
+  DragOffset,
+} from "@/types/workflow-editor/workflow";
 import {
   generateNodeId,
   generateEdgeId,
@@ -10,40 +15,124 @@ import {
 
 const initialNodes: Node[] = [
   // Client
-  { id: 1, label: "Client", x: 100, y: 400, type: "start" },
+  { id: 1, label: "Client", x: 160, y: 290, type: "start", icon: "Smartphone" },
 
   // API Gateway
-  { id: 2, label: "API Gateway", x: 350, y: 400, type: "process" },
+  { id: 2, label: "Gateway", x: 320, y: 290, type: "process", icon: "Router" },
 
-  // Services Layer - Much more spread vertically
-  { id: 3, label: "User Service", x: 600, y: 200, type: "process" },
-  { id: 4, label: "Order Service", x: 600, y: 400, type: "process" },
-  { id: 5, label: "Payment Service", x: 600, y: 600, type: "process" },
+  // Services Layer - spread vertically to use more canvas space
+  {
+    id: 3,
+    label: "User Service",
+    x: 480,
+    y: 140,
+    type: "process",
+    icon: "Users",
+  },
+  {
+    id: 4,
+    label: "Order Service",
+    x: 480,
+    y: 290,
+    type: "process",
+    icon: "ShoppingCart",
+  },
+  {
+    id: 5,
+    label: "Payment",
+    x: 480,
+    y: 440,
+    type: "process",
+    icon: "CreditCard",
+  },
 
-  // Load Balancers - Aligned with services
-  { id: 6, label: "User LB", x: 850, y: 200, type: "process" },
-  { id: 7, label: "Order LB", x: 850, y: 400, type: "process" },
-  { id: 8, label: "Payment LB", x: 850, y: 600, type: "process" },
+  // Load Balancers - more horizontal spacing, aligned with services
+  { id: 6, label: "User LB", x: 640, y: 140, type: "process", icon: "Network" },
+  {
+    id: 7,
+    label: "Order LB",
+    x: 640,
+    y: 290,
+    type: "process",
+    icon: "Network",
+  },
+  { id: 8, label: "Pay LB", x: 640, y: 440, type: "process", icon: "Network" },
 
-  // User Service Servers - More vertical spread
-  { id: 9, label: "User Server 1", x: 1100, y: 120, type: "process" },
-  { id: 10, label: "User Server 2", x: 1100, y: 200, type: "process" },
-  { id: 11, label: "User Server 3", x: 1100, y: 280, type: "process" },
+  // User Service Servers - better vertical distribution
+  { id: 9, label: "User S1", x: 800, y: 80, type: "process", icon: "Server" },
+  {
+    id: 10,
+    label: "User S2",
+    x: 800,
+    y: 140,
+    type: "process",
+    icon: "Server",
+  },
+  {
+    id: 11,
+    label: "User S3",
+    x: 800,
+    y: 200,
+    type: "process",
+    icon: "Server",
+  },
 
-  // Order Service Servers - Clear separation from user servers
-  { id: 12, label: "Order Server 1", x: 1100, y: 320, type: "process" },
-  { id: 13, label: "Order Server 2", x: 1100, y: 400, type: "process" },
-  { id: 14, label: "Order Server 3", x: 1100, y: 480, type: "process" },
+  // Order Service Servers - centered around Order Service
+  {
+    id: 12,
+    label: "Order S1",
+    x: 800,
+    y: 230,
+    type: "process",
+    icon: "Server",
+  },
+  {
+    id: 13,
+    label: "Order S2",
+    x: 800,
+    y: 290,
+    type: "process",
+    icon: "Server",
+  },
+  {
+    id: 14,
+    label: "Order S3",
+    x: 800,
+    y: 350,
+    type: "process",
+    icon: "Server",
+  },
 
-  // Payment Service Servers - Clear separation from order servers
-  { id: 15, label: "Payment Server 1", x: 1100, y: 520, type: "process" },
-  { id: 16, label: "Payment Server 2", x: 1100, y: 600, type: "process" },
-  { id: 17, label: "Payment Server 3", x: 1100, y: 680, type: "process" },
+  // Payment Service Servers - bottom tier with good spacing
+  { id: 15, label: "Pay S1", x: 800, y: 380, type: "process", icon: "Server" },
+  { id: 16, label: "Pay S2", x: 800, y: 440, type: "process", icon: "Server" },
+  { id: 17, label: "Pay S3", x: 800, y: 500, type: "process", icon: "Server" },
 
-  // Databases - Aligned with their respective services
-  { id: 18, label: "User DB", x: 1350, y: 200, type: "process" },
-  { id: 19, label: "Order DB", x: 1350, y: 400, type: "process" },
-  { id: 20, label: "Payment DB", x: 1350, y: 600, type: "process" },
+  // Databases - use more horizontal space, aligned with services
+  {
+    id: 18,
+    label: "User DB",
+    x: 960,
+    y: 140,
+    type: "process",
+    icon: "Database",
+  },
+  {
+    id: 19,
+    label: "Order DB",
+    x: 960,
+    y: 290,
+    type: "process",
+    icon: "Database",
+  },
+  {
+    id: 20,
+    label: "Pay DB",
+    x: 960,
+    y: 440,
+    type: "process",
+    icon: "Database",
+  },
 ];
 const initialEdges: Edge[] = [
   // Client to API Gateway
@@ -114,6 +203,7 @@ export const useWorkflowState = () => {
         x: position.x,
         y: position.y,
         type: "process",
+        icon: "Circle",
       },
     ]);
   };

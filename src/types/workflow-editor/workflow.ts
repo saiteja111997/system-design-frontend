@@ -54,6 +54,7 @@ export interface Node {
   x: number;
   y: number;
   type: NodeType;
+  icon: string;
 }
 
 export interface Edge {

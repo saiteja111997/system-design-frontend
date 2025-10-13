@@ -1,15 +1,8 @@
 import React from "react";
-import { Edge, Node, EdgeHandlers } from "@/types/workflow";
+import { WorkflowEdgeProps } from "@/types/workflow-editor/components";
 import { calculateCurvePath } from "@/utils/workflow";
 import { useEdgeAnimation } from "@/hooks/useWorkflowAnimation";
 import "@/styles/workflowAnimations.css";
-
-interface WorkflowEdgeProps {
-  edge: Edge;
-  sourceNode: Node;
-  targetNode: Node;
-  handlers: EdgeHandlers;
-}
 
 export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
   edge,

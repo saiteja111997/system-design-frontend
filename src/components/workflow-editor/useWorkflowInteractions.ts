@@ -1,21 +1,5 @@
-import { useCallback } from "react";
-import { Node, TempLine, DragOffset } from "@/types/workflow";
-
-interface UseWorkflowInteractionsProps {
-  nodes: Node[];
-  draggingNode: number | null;
-  connecting: number | null;
-  dragOffset: DragOffset;
-  canvasRef: React.RefObject<HTMLDivElement | null>;
-  setSelectedNode: (id: number | null) => void;
-  setDraggingNode: (id: number | null) => void;
-  setDragOffset: (offset: DragOffset) => void;
-  setConnecting: (id: number | null) => void;
-  setTempLine: (line: TempLine | null) => void;
-  updateNodePosition: (nodeId: number, x: number, y: number) => void;
-  addEdge: (source: number, target: number) => void;
-  deleteNode: (id: number) => void;
-}
+import { useCallback, useEffect } from "react";
+import { UseWorkflowInteractionsProps } from "@/types/workflow-editor/components";
 
 export const useWorkflowInteractions = ({
   nodes,
@@ -39,9 +23,13 @@ export const useWorkflowInteractions = ({
 
       const rect = canvasRef.current.getBoundingClientRect();
 
+      // Get the raw canvas coordinates
+      const rawX = clientX - rect.left;
+      const rawY = clientY - rect.top;
+
       return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
+        x: rawX,
+        y: rawY,
       };
     },
     [canvasRef]
@@ -50,6 +38,9 @@ export const useWorkflowInteractions = ({
   const handleNodeMouseDown = useCallback(
     (e: React.MouseEvent, nodeId: number) => {
       if (e.button === 0) {
+        e.stopPropagation(); // Prevent canvas panning when dragging nodes
+        e.preventDefault(); // Prevent text selection
+
         const node = nodes.find((n) => n.id === nodeId);
         if (!node) return;
 
@@ -155,6 +146,24 @@ export const useWorkflowInteractions = ({
     },
     [deleteNode]
   );
+
+  // Global mouse up listener to handle mouse release outside the canvas area
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      // Only call handleMouseUp if we're actually dragging something
+      if (draggingNode !== null || connecting !== null) {
+        handleMouseUp();
+      }
+    };
+
+    // Add global event listener
+    document.addEventListener("mouseup", handleGlobalMouseUp);
+
+    // Cleanup on unmount
+    return () => {
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [handleMouseUp, draggingNode, connecting]);
 
   return {
     handleNodeMouseDown,

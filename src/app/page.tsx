@@ -6,7 +6,7 @@ import { NewVideoView } from "@/components/main-tabs/new-video-view/NewVideoView
 import { AIResearchView } from "@/components/main-tabs/ai-assistant/AIResearchView";
 import { AnalyticsView } from "@/components/main-tabs/analytics/AnalyticsView";
 import { MainLayout } from "@/components/MainLayout";
-import AnimatedWorkflowEditor from "@/components/AnimatedWorflowEditor";
+import AnimatedWorkflowEditor from "@/components/workflow-editor/WorflowEditor";
 
 export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState("system-design");

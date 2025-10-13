@@ -1,9 +1,6 @@
 import React from "react";
 import { Plus } from "lucide-react";
-
-interface WorkflowHeaderProps {
-  onAddNode: () => void;
-}
+import { WorkflowHeaderProps } from "@/types/workflow-editor/components";
 
 export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
   onAddNode,

@@ -1,14 +1,11 @@
-import React, { ReactNode } from "react";
-import { GlowType } from "@/types/workflow";
+import React from "react";
+import { GlowType } from "@/types/workflow-editor/workflow";
+import {
+  GlowWrapperProps,
+  DatabaseGlowWrapperProps,
+} from "@/types/workflow-editor/components";
 import { getNodeGlowConfig } from "@/utils/stylingUtils";
 import "@/styles/workflowAnimations.css";
-
-interface GlowWrapperProps {
-  children: ReactNode;
-  glowType: GlowType;
-  className?: string;
-  enabled?: boolean;
-}
 
 /**
  * Generic wrapper component that applies glow effects to children
@@ -57,11 +54,6 @@ export const withGlow = <P extends object>(
 /**
  * Specialized Database glow wrapper
  */
-interface DatabaseGlowWrapperProps {
-  children: ReactNode;
-  glowType: GlowType;
-  className?: string;
-}
 
 export const DatabaseGlowWrapper: React.FC<DatabaseGlowWrapperProps> = ({
   children,

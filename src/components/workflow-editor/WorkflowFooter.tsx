@@ -1,9 +1,5 @@
 import React from "react";
-
-interface WorkflowFooterProps {
-  nodeCount: number;
-  edgeCount: number;
-}
+import { WorkflowFooterProps } from "@/types/workflow-editor/components";
 
 export const WorkflowFooter: React.FC<WorkflowFooterProps> = ({
   nodeCount,

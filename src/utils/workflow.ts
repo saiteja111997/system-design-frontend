@@ -1,4 +1,4 @@
-import { Node, Edge } from "@/types/workflow";
+import { Node, Edge } from "@/types/workflow-editor/workflow";
 
 /**
  * Generates a unique ID for new nodes
@@ -67,8 +67,9 @@ export const getNodeClasses = (
   isSelected: boolean,
   isDragging: boolean
 ): string => {
-  const baseClasses =
-    "absolute w-40 rounded-2xl transition-all transform cursor-grab active:cursor-grabbing";
+  const baseClasses = isDragging
+    ? "absolute w-40 rounded-2xl transform cursor-grabbing" // No transitions when dragging
+    : "absolute w-40 rounded-2xl transition-all transform cursor-grab active:cursor-grabbing";
 
   const dragClasses = isDragging ? "active:scale-105" : "";
 

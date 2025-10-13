@@ -57,3 +57,11 @@
 @source inline("{animated-edge,animated-edge-yellow,animated-edge-red}");
 @source inline("{database-glow-blue,database-glow-yellow,database-glow-red}");
 @source inline("pulse-dot");
+
+/* Canvas controls and dock navigation classes */
+@source inline("dock-navigation");
+@source inline("workflow-node");
+@source inline("workflow-header");
+@source inline("cursor-{grab,grabbing}");
+@source inline("transform-{gpu}");
+@source inline("scale-{50,75,100,125,150,200}");

@@ -40,7 +40,7 @@ const container = {
   },
 };
 
-interface SidebarProps {
+interface SidebarLeftProps {
   sidebarExpanded: boolean;
   showTooltips: boolean;
   currentPage: string;
@@ -48,7 +48,7 @@ interface SidebarProps {
   handleToggleSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
+const SidebarLeft: React.FC<SidebarLeftProps> = ({
   sidebarExpanded,
   showTooltips,
   currentPage,
@@ -296,4 +296,4 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-export default Sidebar;
+export default SidebarLeft;

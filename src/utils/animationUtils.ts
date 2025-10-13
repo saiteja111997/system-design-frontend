@@ -1,4 +1,8 @@
-import { RPSValue, RPSRange, AnimationDuration } from "@/types/workflow";
+import {
+  RPSValue,
+  RPSRange,
+  AnimationDuration,
+} from "@/types/workflow-editor/workflow";
 
 /**
  * Animation utility functions
