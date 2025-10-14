@@ -32,4 +32,4 @@ export const CanvasControlsProvider: React.FC<CanvasControlsProviderProps> = ({
       {children}
     </CanvasControlsContext.Provider>
   );
-};
+}; 
