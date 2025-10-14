@@ -15,7 +15,13 @@ import {
   FullscreenProvider,
   useFullscreenContext,
 } from "@/contexts/FullscreenContext";
-import SidebarRight from "./SidebarRight";
+import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
+import { dockItems } from "@/data/dockItems";
+import {
+  createDockItemHandlers,
+  handleDockItemClick,
+} from "@/utils/dockHandlers";
+import SidebarRight from "./sidebar-right/SidebarRight";
 import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
 import "@/styles/workflowAnimations.css";
@@ -23,7 +29,18 @@ import "@/styles/workflowAnimations.css";
 const WorkflowEditorContent: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { isFullscreen, exitFullscreen } = useFullscreenContext();
+  const { isFullscreen, exitFullscreen, toggleFullscreen } =
+    useFullscreenContext();
+
+  // Canvas controls - now properly inside CanvasControlsProvider
+  const canvasControls = useCanvasControlsContext();
+  const dockHandlers = createDockItemHandlers(canvasControls, {
+    toggleFullscreen,
+  });
+
+  const handleWorkflowDockItemClick = (itemId: string) => {
+    handleDockItemClick(itemId, dockHandlers);
+  };
 
   // State management
   const {
@@ -48,6 +65,7 @@ const WorkflowEditorContent: React.FC = () => {
     deleteEdge,
     addEdge,
     updateNodePosition,
+    updateNode,
   } = useWorkflowState();
 
   // Interaction handlers
@@ -120,10 +138,12 @@ const WorkflowEditorContent: React.FC = () => {
               collapsible={false}
               position="top-left"
               responsive="top-left"
+              items={dockItems}
+              onItemClick={handleWorkflowDockItemClick}
             />
 
             {/* Run Button - positioned below DockNavigation */}
-            <div className="absolute bottom-20 right-24 z-20">
+            <div className="absolute bottom-20 left-4 z-20">
               <RunButton runCode={runCode} onToggle={setRunCode} />
             </div>
           </div>
@@ -132,6 +152,9 @@ const WorkflowEditorContent: React.FC = () => {
           <SidebarRight
             requestsPerSecond={requestsPerSecond}
             onRequestsPerSecondChange={setRequestsPerSecond}
+            nodes={nodes}
+            onAddNode={addNode}
+            onUpdateNode={updateNode}
           />
         </div>
 
@@ -143,44 +166,46 @@ const WorkflowEditorContent: React.FC = () => {
   );
 
   return (
-    <WorkflowProvider
-      requestsPerSecond={requestsPerSecond}
-      setRequestsPerSecond={setRequestsPerSecond}
-    >
-      <CanvasControlsProvider>
-        {/* Normal workflow content */}
-        {!isFullscreen && workflowContent}
+    <>
+      {/* Normal workflow content */}
+      {!isFullscreen && workflowContent}
 
-        {/* Fullscreen content using Portal */}
-        {isFullscreen &&
-          createPortal(
-            <div className="fixed inset-0 z-[9999] bg-white dark:bg-slate-950">
-              {/* Exit fullscreen button */}
-              <button
-                onClick={exitFullscreen}
-                className="fixed top-6 left-24 z-[10000] w-10 h-10 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
-                title="Exit Fullscreen"
-              >
-                <X
-                  size={20}
-                  className="text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-white transition-colors"
-                />
-              </button>
+      {/* Fullscreen content using Portal */}
+      {isFullscreen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] bg-white dark:bg-slate-950">
+            {/* Exit fullscreen button */}
+            <button
+              onClick={exitFullscreen}
+              className="fixed top-6 left-24 z-[10000] w-10 h-10 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
+              title="Exit Fullscreen"
+            >
+              <X
+                size={20}
+                className="text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-white transition-colors"
+              />
+            </button>
 
-              {/* Fullscreen workflow content */}
-              {workflowContent}
-            </div>,
-            document.body
-          )}
-      </CanvasControlsProvider>
-    </WorkflowProvider>
+            {/* Fullscreen workflow content */}
+            {workflowContent}
+          </div>,
+          document.body
+        )}
+    </>
   );
 };
 
 const AnimatedWorkflowEditor: React.FC = () => {
   return (
     <FullscreenProvider>
-      <WorkflowEditorContent />
+      <WorkflowProvider
+        requestsPerSecond={1500}
+        setRequestsPerSecond={() => {}}
+      >
+        <CanvasControlsProvider>
+          <WorkflowEditorContent />
+        </CanvasControlsProvider>
+      </WorkflowProvider>
     </FullscreenProvider>
   );
 };

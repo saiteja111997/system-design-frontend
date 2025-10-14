@@ -9,6 +9,14 @@ import {
   Network,
   Server,
   Database,
+  Globe,
+  Shield,
+  Search,
+  HardDrive,
+  Zap,
+  Monitor,
+  Activity,
+  Link,
   Circle,
 } from "lucide-react";
 import { WorkflowNodeProps } from "@/types/workflow-editor/components";
@@ -28,6 +36,14 @@ const getIconComponent = (iconName: string) => {
     Network,
     Server,
     Database,
+    Globe,
+    Shield,
+    Search,
+    HardDrive,
+    Zap,
+    Monitor,
+    Activity,
+    Link,
     Circle,
   };
   return iconMap[iconName as keyof typeof iconMap] || Circle;

@@ -2,41 +2,49 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { dockItems } from "@/data/dockItems";
-import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
-import { useFullscreenContext } from "@/contexts/FullscreenContext";
-import {
-  createDockItemHandlers,
-  handleDockItemClick,
-} from "@/utils/dockHandlers";
+
+export interface DockItem {
+  id: string;
+  name: string;
+  tooltip: string;
+  route?: string;
+  component: React.ReactNode;
+  content?: React.ReactNode; // Optional content for sidebar usage
+}
 
 interface DockNavigationProps {
   position?: "top" | "bottom" | "left" | "right" | "top-left";
   collapsible?: boolean;
   responsive?: "top" | "bottom" | "left" | "right" | "top-left";
+  items: DockItem[]; // Accept items as prop
+  onItemClick?: (itemId: string, index: number) => void; // Optional custom click handler
+  onMouseEnter?: (index: number) => void; // Optional mouse enter handler
+  onMouseLeave?: () => void; // Optional mouse leave handler
+  className?: string; // Additional custom classes
 }
 
 const DockNavigation: React.FC<DockNavigationProps> = ({
   position = "bottom",
   collapsible = false,
   responsive = "bottom",
+  items,
+  onItemClick,
+  onMouseEnter,
+  onMouseLeave,
+  className = "",
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [isDockVisible, setDockVisible] = useState(!collapsible);
   const [currentPosition, setCurrentPosition] = useState(position);
 
-  const canvasControls = useCanvasControlsContext();
-  const { toggleFullscreen } = useFullscreenContext();
-  const dockHandlers = createDockItemHandlers(canvasControls, {
-    toggleFullscreen,
-  });
-
   const handleMouseEnter = (index: number) => {
     setHoverIndex(index);
+    onMouseEnter?.(index);
   };
 
   const handleMouseLeave = () => {
     setHoverIndex(null);
+    onMouseLeave?.();
   };
 
   const handleParentMouseEnter = () => {
@@ -51,8 +59,8 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
     }
   };
 
-  const handleItemClick = (itemId: string) => {
-    handleDockItemClick(itemId, dockHandlers);
+  const handleItemClick = (itemId: string, index: number) => {
+    onItemClick?.(itemId, index);
   };
 
   useEffect(() => {
@@ -153,7 +161,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
       }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2, delay: 0.2 }}
-      className={`${getContainerClasses()} dock-navigation`}
+      className={`${getContainerClasses()} dock-navigation ${className}`}
       onMouseEnter={handleParentMouseEnter}
       onMouseLeave={handleParentMouseLeave}
     >
@@ -163,7 +171,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
         animate={{ opacity: isDockVisible ? 1 : 0 }}
         transition={{ duration: 0.2 }}
       >
-        {dockItems.map((item, index) => (
+        {items.map((item: DockItem, index: number) => (
           <motion.div
             key={item.id}
             className="group relative flex items-center justify-center w-9 h-9 rounded-lg bg-white/30 dark:bg-white/10 backdrop-blur-sm border border-slate-900/20 dark:border-white/10 cursor-pointer hover:bg-white/50 dark:hover:bg-white/20 hover:border-slate-900/30 dark:hover:border-white/30"
@@ -175,7 +183,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
             }}
             onMouseEnter={() => handleMouseEnter(index)}
             onMouseLeave={handleMouseLeave}
-            onClick={() => handleItemClick(item.id)}
+            onClick={() => handleItemClick(item.id, index)}
             title={item.tooltip}
           >
             <div className="w-full h-full flex items-center justify-center">

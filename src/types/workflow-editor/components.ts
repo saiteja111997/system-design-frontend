@@ -47,7 +47,11 @@ export interface TempConnectionLineProps {
 
 // Header Component Props
 export interface WorkflowHeaderProps {
-  onAddNode: () => void;
+  onAddNode: (nodeType?: {
+    label: string;
+    icon: string;
+    type?: string;
+  }) => void;
 }
 
 // Footer Component Props

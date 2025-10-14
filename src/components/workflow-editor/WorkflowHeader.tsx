@@ -16,7 +16,6 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = ({
         </p>
       </div>
       <button
-        onClick={onAddNode}
         className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg transition-all shadow-lg hover:shadow-blue-500/50 font-semibold"
       >
         <Plus size={20} />

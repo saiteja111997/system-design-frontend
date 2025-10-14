@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Node,
+  NodeType,
   Edge,
   TempLine,
   DragOffset,
@@ -192,20 +193,30 @@ export const useWorkflowState = () => {
   const [requestsPerSecond, setRequestsPerSecond] = useState<number>(1500);
   const [runCode, setRunCode] = useState<boolean>(false);
 
-  const addNode = () => {
+  const addNode = (nodeType?: {
+    label: string;
+    icon: string;
+    type?: string;
+  }) => {
     const newId = generateNodeId(nodes);
     const position = generateRandomPosition();
+
+    // Validate the type parameter
+    const validTypes: NodeType[] = ["start", "process", "end"];
+    const nodePositionType = nodeType?.type && validTypes.includes(nodeType.type as NodeType) 
+      ? (nodeType.type as NodeType) 
+      : "process";
 
     setNodes([
       ...nodes,
       {
         id: newId,
-        label: `Node ${newId}`,
+        label: nodeType?.label || `Node ${newId}`,
         x: position.x,
         y: position.y,
-        type: "process",
-        icon: "Circle",
-      },
+        type: nodePositionType,
+        icon: nodeType?.icon || "Circle",
+      } as Node,
     ]);
   };
 
@@ -234,6 +245,10 @@ export const useWorkflowState = () => {
 
   const updateNodePosition = (nodeId: number, x: number, y: number) => {
     setNodes(nodes.map((n) => (n.id === nodeId ? { ...n, x, y } : n)));
+  };
+
+  const updateNode = (nodeId: number, updates: Partial<Node>) => {
+    setNodes(nodes.map((n) => (n.id === nodeId ? { ...n, ...updates } : n)));
   };
 
   return {
@@ -265,5 +280,6 @@ export const useWorkflowState = () => {
     deleteEdge,
     addEdge,
     updateNodePosition,
+    updateNode,
   };
 };
