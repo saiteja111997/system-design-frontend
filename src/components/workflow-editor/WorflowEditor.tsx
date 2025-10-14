@@ -96,7 +96,7 @@ const WorkflowEditorContent: React.FC = () => {
   // Handler objects for cleaner prop passing
   const nodeHandlers: NodeHandlers = {
     onMouseDown: handleNodeMouseDown,
-    onClick: handleNodeClick,
+    onClick: (nodeId: number) => handleNodeClick(nodeId, selectedNode),
     onStartConnection: handleStartConnection,
     onEndConnection: handleEndConnection,
     onDelete: handleDeleteNode,

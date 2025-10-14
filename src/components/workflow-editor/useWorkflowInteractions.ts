@@ -46,20 +46,13 @@ export const useWorkflowInteractions = ({
 
         const canvasCoords = getCanvasCoordinates(e.clientX, e.clientY);
         setDraggingNode(nodeId);
-        setSelectedNode(nodeId);
         setDragOffset({
           x: canvasCoords.x - node.x,
           y: canvasCoords.y - node.y,
         });
       }
     },
-    [
-      nodes,
-      setDraggingNode,
-      setSelectedNode,
-      setDragOffset,
-      getCanvasCoordinates,
-    ]
+    [nodes, setDraggingNode, setDragOffset, getCanvasCoordinates]
   );
 
   const handleMouseMove = useCallback(
@@ -105,8 +98,14 @@ export const useWorkflowInteractions = ({
   }, [setDraggingNode, connecting, setConnecting, setTempLine]);
 
   const handleNodeClick = useCallback(
-    (nodeId: number) => {
-      setSelectedNode(nodeId);
+    (nodeId: number, currentSelectedNode: number | null) => {
+      // Simple toggle: if clicking the same node that's already selected, deselect it
+      if (currentSelectedNode === nodeId) {
+        setSelectedNode(null);
+      } else {
+        // Otherwise, select the clicked node
+        setSelectedNode(nodeId);
+      }
     },
     [setSelectedNode]
   );
