@@ -86,50 +86,51 @@ const WorkflowEditorContent: React.FC = () => {
   };
 
   const workflowContent = (
-    <div
-      className="flex flex-col select-none bg-white dark:bg-slate-950 relative h-full"
-      onMouseLeave={handleMouseUp}
-      ref={containerRef}
-    >
+    <>
       {/* Only show header in normal mode, not in fullscreen */}
       {!isFullscreen && <WorkflowHeader onAddNode={addNode} />}
+      <div
+        className="flex flex-col select-none bg-white dark:bg-slate-950 relative h-full"
+        onMouseLeave={handleMouseUp}
+        ref={containerRef}
+      >
+        {/* Main content area with right sidebar */}
+        <div className="flex-1 flex relative">
+          {/* Workflow Canvas - with right margin for collapsed sidebar */}
+          <div className="flex-1 flex flex-col mr-[74px]">
+            <WorkflowCanvas
+              ref={canvasRef}
+              nodes={nodes}
+              edges={edges}
+              tempLine={tempLine}
+              selectedNode={selectedNode}
+              draggingNode={draggingNode}
+              nodeHandlers={nodeHandlers}
+              edgeHandlers={edgeHandlers}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            />
 
-      {/* Main content area with right sidebar */}
-      <div className="flex-1 flex relative">
-        {/* Workflow Canvas - with right margin for collapsed sidebar */}
-        <div className="flex-1 flex flex-col mr-[74px]">
-          <WorkflowCanvas
-            ref={canvasRef}
-            nodes={nodes}
-            edges={edges}
-            tempLine={tempLine}
-            selectedNode={selectedNode}
-            draggingNode={draggingNode}
-            nodeHandlers={nodeHandlers}
-            edgeHandlers={edgeHandlers}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          />
+            {/* Dock Navigation - positioned in top-left of workflow editor */}
+            <DockNavigation
+              collapsible={false}
+              position="top-left"
+              responsive="top-left"
+            />
+          </div>
 
-          {/* Dock Navigation - positioned in top-left of workflow editor */}
-          <DockNavigation
-            collapsible={false}
-            position="top-left"
-            responsive="top-left"
+          {/* Right Sidebar - positioned within workflow editor height */}
+          <SidebarRight
+            requestsPerSecond={requestsPerSecond}
+            onRequestsPerSecondChange={setRequestsPerSecond}
           />
         </div>
 
-        {/* Right Sidebar - positioned within workflow editor height */}
-        <SidebarRight
-          requestsPerSecond={requestsPerSecond}
-          onRequestsPerSecondChange={setRequestsPerSecond}
-        />
+        {!isFullscreen && (
+          <WorkflowFooter nodeCount={nodes.length} edgeCount={edges.length} />
+        )}
       </div>
-
-      {!isFullscreen && (
-        <WorkflowFooter nodeCount={nodes.length} edgeCount={edges.length} />
-      )}
-    </div>
+    </>
   );
 
   return (
