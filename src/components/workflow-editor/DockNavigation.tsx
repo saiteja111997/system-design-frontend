@@ -24,6 +24,15 @@ interface DockNavigationProps {
   className?: string; // Additional custom classes
 }
 
+// Map external dock item ids to internal activeTool identifiers
+// Keeping this at module scope avoids re-allocating the object on every render & within each map iteration.
+const TOOL_ID_MAP: Record<string, string> = {
+  "selection-tool": "select",
+  "rectangle-tool": "rectangle",
+  "ellipse-tool": "circle",
+  "free-draw": "freehand",
+};
+
 const DockNavigation: React.FC<DockNavigationProps> = ({
   position = "bottom",
   collapsible = false,
@@ -174,14 +183,8 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
         transition={{ duration: 0.2 }}
       >
         {items.map((item: DockItem, index: number) => {
-          // Map tool id to activeTool value
-          const toolIdMap: Record<string, string> = {
-            "selection-tool": "select",
-            "rectangle-tool": "rectangle",
-            "ellipse-tool": "circle",
-            "free-draw": "freehand",
-          };
-          const isActive = activeTool && toolIdMap[item.id] === activeTool;
+          // Determine if current item matches active tool
+          const isActive = !!activeTool && TOOL_ID_MAP[item.id] === activeTool;
           return (
             <motion.div
               key={item.id}
