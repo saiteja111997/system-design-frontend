@@ -1,17 +1,43 @@
-/* Workflow Animation Styles */
+/* Workflow Animation Styles - OPTIMIZED VERSION */
 
-/* Flow animations for edges */
-@keyframes flowAnimation {
+/* Optimized flow animations for edges */
+@keyframes flowAnimationOptimized {
   0% {
     stroke-dashoffset: 0;
-    opacity: 0.4;
+  }
+  100% {
+    stroke-dashoffset: -20;
+  }
+}
+
+/* Lightweight glow effect using box-shadow instead of filter */
+@keyframes edgeGlowBlue {
+  0%,
+  100% {
+    opacity: 0.6;
   }
   50% {
     opacity: 1;
   }
+}
+
+@keyframes edgeGlowYellow {
+  0%,
   100% {
-    stroke-dashoffset: -20;
-    opacity: 0.4;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes edgeGlowRed {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
@@ -63,20 +89,50 @@
   }
 }
 
-/* Edge animation classes */
+/* Optimized edge animation classes - NO EXPENSIVE FILTERS */
 .animated-edge {
   stroke-dasharray: 5 15;
-  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.6));
+  stroke: #3b82f6;
+  /* Removed expensive drop-shadow filter */
 }
 
 .animated-edge-yellow {
   stroke-dasharray: 5 15;
-  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+  stroke: #f59e0b;
+  /* Removed expensive drop-shadow filter */
 }
 
 .animated-edge-red {
   stroke-dasharray: 5 15;
-  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+  stroke: #ef4444;
+  /* Removed expensive drop-shadow filter */
+}
+
+/* Optimized animation classes with performance improvements */
+.animated-edge,
+.animated-edge-yellow,
+.animated-edge-red {
+  animation-name: flowAnimationOptimized;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--flow-animation-duration, 2s);
+  /* GPU acceleration */
+  will-change: stroke-dashoffset;
+  /* Optimize for animations */
+  transform: translateZ(0);
+}
+
+/* Separate glow animations for better performance */
+.animated-edge {
+  animation-name: flowAnimationOptimized, edgeGlowBlue;
+}
+
+.animated-edge-yellow {
+  animation-name: flowAnimationOptimized, edgeGlowYellow;
+}
+
+.animated-edge-red {
+  animation-name: flowAnimationOptimized, edgeGlowRed;
 }
 
 /* Database glow classes */
@@ -89,7 +145,7 @@
 }
 
 .database-glow-red {
-  animation: databaseGlowRed .6s ease-in-out infinite;
+  animation: databaseGlowRed 0.6s ease-in-out infinite;
 }
 
 /* Pulse dot class */
@@ -97,12 +153,15 @@
   animation: dotPulse 1.5s ease-in-out infinite;
 }
 
-/* Dynamic animation duration classes - will be applied via CSS variables */
+/* Dynamic animation duration classes - OPTIMIZED */
 .animated-edge,
 .animated-edge-yellow,
 .animated-edge-red {
-  animation-name: flowAnimation;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-duration: var(--flow-animation-duration, 2s);
+  /* GPU acceleration */
+  will-change: stroke-dashoffset, opacity;
+  /* Optimize for animations */
+  transform: translateZ(0);
 }

@@ -9,6 +9,7 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
   sourceNode,
   targetNode,
   handlers,
+  runCode = false, // Add runCode prop with default false
 }) => {
   const path = calculateCurvePath(
     sourceNode.x,
@@ -24,7 +25,7 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
       {/* Background line */}
       <path
         d={path}
-        stroke="var(--edge-bg-stroke)"
+        stroke={runCode ? "var(--edge-bg-stroke)" : "#8851e0"}
         strokeWidth="3"
         fill="none"
         strokeLinecap="round"
@@ -33,15 +34,17 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
         className="hover:stroke-red-500/50 transition-colors"
       />
 
-      {/* Animated flowing line */}
-      <path
-        d={path}
-        className={edgeStyle.className}
-        stroke={edgeStyle.gradient}
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-      />
+      {/* Animated flowing line - only render if runCode is true */}
+      {runCode && (
+        <path
+          d={path}
+          className={edgeStyle.className}
+          stroke={edgeStyle.gradient}
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+      )}
 
       {/* Arrow */}
       <path

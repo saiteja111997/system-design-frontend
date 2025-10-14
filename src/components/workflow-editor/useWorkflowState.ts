@@ -190,6 +190,7 @@ export const useWorkflowState = () => {
   const [connecting, setConnecting] = useState<number | null>(null);
   const [tempLine, setTempLine] = useState<TempLine | null>(null);
   const [requestsPerSecond, setRequestsPerSecond] = useState<number>(1500);
+  const [runCode, setRunCode] = useState<boolean>(false);
 
   const addNode = () => {
     const newId = generateNodeId(nodes);
@@ -245,6 +246,7 @@ export const useWorkflowState = () => {
     connecting,
     tempLine,
     requestsPerSecond,
+    runCode,
 
     // Setters
     setNodes,
@@ -255,6 +257,7 @@ export const useWorkflowState = () => {
     setConnecting,
     setTempLine,
     setRequestsPerSecond,
+    setRunCode,
 
     // Actions
     addNode,

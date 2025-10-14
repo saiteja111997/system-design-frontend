@@ -20,6 +20,7 @@ export interface WorkflowCanvasProps {
   edgeHandlers: EdgeHandlers;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
+  runCode?: boolean; // Optional prop to control edge animations
 }
 
 // Node Component Props
@@ -36,6 +37,7 @@ export interface WorkflowEdgeProps {
   sourceNode: Node;
   targetNode: Node;
   handlers: EdgeHandlers;
+  runCode?: boolean; // Optional prop to control animation
 }
 
 // Temp Connection Line Props

@@ -20,6 +20,7 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       edgeHandlers,
       onMouseMove,
       onMouseUp,
+      runCode = false, // Add runCode prop with default false
     },
     ref
   ) => {
@@ -79,6 +80,7 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
                   sourceNode={sourceNode}
                   targetNode={targetNode}
                   handlers={edgeHandlers}
+                  runCode={runCode}
                 />
               );
             })}

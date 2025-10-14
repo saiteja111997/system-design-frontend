@@ -17,6 +17,7 @@ import {
 } from "@/contexts/FullscreenContext";
 import SidebarRight from "./SidebarRight";
 import DockNavigation from "./DockNavigation";
+import RunButton from "./RunButton";
 import "@/styles/workflowAnimations.css";
 
 const WorkflowEditorContent: React.FC = () => {
@@ -34,12 +35,14 @@ const WorkflowEditorContent: React.FC = () => {
     connecting,
     tempLine,
     requestsPerSecond,
+    runCode,
     setSelectedNode,
     setDraggingNode,
     setDragOffset,
     setConnecting,
     setTempLine,
     setRequestsPerSecond,
+    setRunCode,
     addNode,
     deleteNode,
     deleteEdge,
@@ -109,6 +112,7 @@ const WorkflowEditorContent: React.FC = () => {
               edgeHandlers={edgeHandlers}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
+              runCode={runCode}
             />
 
             {/* Dock Navigation - positioned in top-left of workflow editor */}
@@ -117,6 +121,11 @@ const WorkflowEditorContent: React.FC = () => {
               position="top-left"
               responsive="top-left"
             />
+
+            {/* Run Button - positioned below DockNavigation */}
+            <div className="absolute bottom-20 right-24 z-20">
+              <RunButton runCode={runCode} onToggle={setRunCode} />
+            </div>
           </div>
 
           {/* Right Sidebar - positioned within workflow editor height */}
