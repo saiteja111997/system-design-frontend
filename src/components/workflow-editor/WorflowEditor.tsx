@@ -1,4 +1,5 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import type { CanvasState } from "../../utils/annotationUtils";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
@@ -24,19 +25,60 @@ import {
 import SidebarRight from "./sidebar-right/SidebarRight";
 import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
+import { AnnotationLayer, type Tool } from "./AnnotationLayer";
 import "@/styles/workflowAnimations.css";
 
 const WorkflowEditorContent: React.FC = () => {
+  // Annotation persistence across fullscreen
+  const annotationLayerRef = useRef<
+    import("./AnnotationLayer").AnnotationLayerHandle | null
+  >(null);
+  const [annotationSnapshot, setAnnotationSnapshot] =
+    useState<CanvasState | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
     useFullscreenContext();
 
+  // Handle annotation persistence across fullscreen transitions
+  useEffect(() => {
+    if (!isFullscreen && annotationLayerRef.current) {
+      // Exiting fullscreen: save the current annotation state
+      const snapshot = annotationLayerRef.current.snapshot();
+      if (snapshot) {
+        setAnnotationSnapshot(snapshot);
+      }
+    } else if (
+      isFullscreen &&
+      annotationLayerRef.current &&
+      annotationSnapshot
+    ) {
+      // Entering fullscreen: load the saved annotation state (only if snapshot exists)
+      annotationLayerRef.current.load(annotationSnapshot);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFullscreen]); // Only depend on isFullscreen to avoid infinite loop when setting annotationSnapshot
+
+  // Annotation state
+  const [activeTool, setActiveTool] = useState<Tool>("select");
+  const [isAnnotationLayerVisible, setIsAnnotationLayerVisible] =
+    useState(false);
+
   // Canvas controls - now properly inside CanvasControlsProvider
   const canvasControls = useCanvasControlsContext();
-  const dockHandlers = createDockItemHandlers(canvasControls, {
-    toggleFullscreen,
-  });
+  const dockHandlers = createDockItemHandlers(
+    canvasControls,
+    { toggleFullscreen },
+    {
+      setActiveTool: (tool: Tool) => {
+        setActiveTool(tool);
+        // Show annotation layer when a drawing tool is selected
+        if (tool !== "select") {
+          setIsAnnotationLayerVisible(true);
+        }
+      },
+    }
+  );
 
   const handleWorkflowDockItemClick = (itemId: string) => {
     handleDockItemClick(itemId, dockHandlers);
@@ -133,6 +175,29 @@ const WorkflowEditorContent: React.FC = () => {
               runCode={runCode}
             />
 
+            {/* Annotation Layer Overlay */}
+            {isAnnotationLayerVisible && (
+              <div className="absolute inset-0 z-10 pointer-events-none">
+                <AnnotationLayer
+                  ref={annotationLayerRef}
+                  activeTool={activeTool}
+                  onFinish={() => {
+                    setActiveTool("select");
+                  }}
+                  initialJSON={annotationSnapshot}
+                  className="pointer-events-auto"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    pointerEvents: activeTool === "select" ? "none" : "auto",
+                  }}
+                />
+              </div>
+            )}
+
             {/* Dock Navigation - positioned in top-left of workflow editor */}
             <DockNavigation
               collapsible={false}
@@ -140,6 +205,7 @@ const WorkflowEditorContent: React.FC = () => {
               responsive="top-left"
               items={dockItems}
               onItemClick={handleWorkflowDockItemClick}
+              activeTool={activeTool}
             />
 
             {/* Run Button - positioned below DockNavigation */}

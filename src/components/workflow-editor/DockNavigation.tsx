@@ -13,6 +13,7 @@ export interface DockItem {
 }
 
 interface DockNavigationProps {
+  activeTool?: string;
   position?: "top" | "bottom" | "left" | "right" | "top-left";
   collapsible?: boolean;
   responsive?: "top" | "bottom" | "left" | "right" | "top-left";
@@ -32,6 +33,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
   onMouseEnter,
   onMouseLeave,
   className = "",
+  activeTool,
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [isDockVisible, setDockVisible] = useState(!collapsible);
@@ -171,29 +173,43 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
         animate={{ opacity: isDockVisible ? 1 : 0 }}
         transition={{ duration: 0.2 }}
       >
-        {items.map((item: DockItem, index: number) => (
-          <motion.div
-            key={item.id}
-            className="group relative flex items-center justify-center w-9 h-9 rounded-lg bg-white/30 dark:bg-white/10 backdrop-blur-sm border border-slate-900/20 dark:border-white/10 cursor-pointer hover:bg-white/50 dark:hover:bg-white/20 hover:border-slate-900/30 dark:hover:border-white/30"
-            animate={getItemTransform(index)}
-            transition={{
-              type: "spring",
-              stiffness: 500,
-              damping: 30,
-            }}
-            onMouseEnter={() => handleMouseEnter(index)}
-            onMouseLeave={handleMouseLeave}
-            onClick={() => handleItemClick(item.id, index)}
-            title={item.tooltip}
-          >
-            <div className="w-full h-full flex items-center justify-center">
-              {item.component}
-            </div>
-
-            {/* Tooltip */}
-            <div className={getTooltipClasses()}>{item.tooltip}</div>
-          </motion.div>
-        ))}
+        {items.map((item: DockItem, index: number) => {
+          // Map tool id to activeTool value
+          const toolIdMap: Record<string, string> = {
+            "selection-tool": "select",
+            "rectangle-tool": "rectangle",
+            "ellipse-tool": "circle",
+            "free-draw": "freehand",
+          };
+          const isActive = activeTool && toolIdMap[item.id] === activeTool;
+          return (
+            <motion.div
+              key={item.id}
+              className={
+                "group relative flex items-center justify-center w-9 h-9 rounded-lg cursor-pointer " +
+                (isActive
+                  ? "bg-blue-600 dark:bg-blue-400 border-blue-700 dark:border-blue-300 shadow-lg text-white dark:text-slate-900"
+                  : "bg-white/30 dark:bg-white/10 backdrop-blur-sm border border-slate-900/20 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/20 hover:border-slate-900/30 dark:hover:border-white/30 text-slate-700 dark:text-white")
+              }
+              animate={getItemTransform(index)}
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 30,
+              }}
+              onMouseEnter={() => handleMouseEnter(index)}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => handleItemClick(item.id, index)}
+              title={item.tooltip}
+            >
+              <div className="w-full h-full flex items-center justify-center">
+                {item.component}
+              </div>
+              {/* Tooltip */}
+              <div className={getTooltipClasses()}>{item.tooltip}</div>
+            </motion.div>
+          );
+        })}
       </motion.div>
     </motion.div>
   );
