@@ -55,6 +55,7 @@ export interface Node {
   y: number;
   type: NodeType;
   icon: string;
+  configurations?: Record<string, string | number | boolean>;
 }
 
 export interface Edge {

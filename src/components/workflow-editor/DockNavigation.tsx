@@ -191,7 +191,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
               className={
                 "group relative flex items-center justify-center w-9 h-9 rounded-lg cursor-pointer " +
                 (isActive
-                  ? "bg-blue-600 dark:bg-blue-400 border-blue-700 dark:border-blue-300 shadow-lg text-white dark:text-slate-900"
+                  ? "bg-primary dark:bg-primary border-purple-700 dark:border-primary shadow-lg !text-white dark:text-slate-900"
                   : "bg-white/30 dark:bg-white/10 backdrop-blur-sm border border-slate-900/20 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/20 hover:border-slate-900/30 dark:hover:border-white/30 text-slate-700 dark:text-white")
               }
               animate={getItemTransform(index)}

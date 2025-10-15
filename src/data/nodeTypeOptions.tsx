@@ -16,12 +16,29 @@ import {
   Link,
 } from "lucide-react";
 
-export interface NodeTypeOption {
+// Configuration field types
+export interface ConfigField {
+  key: string;
+  label: string;
+  type: "number" | "text" | "select" | "boolean";
+  unit?: string;
+  options?: { value: string; label: string }[];
+  defaultValue: string | number | boolean;
+  min?: number;
+  max?: number;
+}
+
+export interface NodeConfiguration {
+  [key: string]: ConfigField;
+}
+
+export interface NodeOption {
   id: string;
   label: string;
   icon: string;
   category: string;
   component: React.ReactNode;
+  configurations: NodeConfiguration;
 }
 
 export interface NodePositionType {
@@ -58,7 +75,7 @@ export const nodePositionTypes: NodePositionType[] = [
   },
 ];
 
-export const nodeTypeOptions: NodeTypeOption[] = [
+export const nodeOptions: NodeOption[] = [
   // Entry Layer
   {
     id: "client",
@@ -66,6 +83,42 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Smartphone",
     category: "Entry Layer",
     component: <Smartphone size={16} className="text-blue-600" />,
+    configurations: {
+      rps: {
+        key: "rps",
+        label: "Requests per second (RPS)",
+        type: "number",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      requestSize: {
+        key: "requestSize",
+        label: "Request size",
+        type: "number",
+        unit: "KB",
+        defaultValue: 50,
+        min: 1,
+        max: 1024,
+      },
+      requestType: {
+        key: "requestType",
+        label: "Request type",
+        type: "select",
+        options: [
+          { value: "read", label: "Read" },
+          { value: "write", label: "Write" },
+          { value: "mixed", label: "Mixed" },
+        ],
+        defaultValue: "read",
+      },
+      region: {
+        key: "region",
+        label: "Region (Optional)",
+        type: "text",
+        defaultValue: "us-east-1",
+      },
+    },
   },
   {
     id: "dns",
@@ -73,6 +126,35 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Globe",
     category: "Entry Layer",
     component: <Globe size={16} className="text-green-600" />,
+    configurations: {
+      lookupLatency: {
+        key: "lookupLatency",
+        label: "DNS lookup latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 50,
+        min: 1,
+        max: 1000,
+      },
+      ttl: {
+        key: "ttl",
+        label: "TTL",
+        type: "number",
+        unit: "seconds",
+        defaultValue: 300,
+        min: 1,
+        max: 86400,
+      },
+      failureRate: {
+        key: "failureRate",
+        label: "Failure rate",
+        type: "number",
+        unit: "%",
+        defaultValue: 0.1,
+        min: 0,
+        max: 100,
+      },
+    },
   },
   {
     id: "gateway",
@@ -80,6 +162,37 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Router",
     category: "Entry Layer",
     component: <Router size={16} className="text-purple-600" />,
+    configurations: {
+      maxRps: {
+        key: "maxRps",
+        label: "Max RPS",
+        type: "number",
+        defaultValue: 1000,
+        min: 1,
+        max: 100000,
+      },
+      timeout: {
+        key: "timeout",
+        label: "Timeout",
+        type: "number",
+        unit: "ms",
+        defaultValue: 30000,
+        min: 100,
+        max: 300000,
+      },
+      routingRules: {
+        key: "routingRules",
+        label: "Routing rules",
+        type: "text",
+        defaultValue: "default",
+      },
+      authEnabled: {
+        key: "authEnabled",
+        label: "Authentication enabled",
+        type: "boolean",
+        defaultValue: true,
+      },
+    },
   },
 
   // Routing & Compute
@@ -89,6 +202,42 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Network",
     category: "Routing & Compute",
     component: <Network size={16} className="text-orange-600" />,
+    configurations: {
+      algorithm: {
+        key: "algorithm",
+        label: "Algorithm",
+        type: "select",
+        options: [
+          { value: "round-robin", label: "Round Robin" },
+          { value: "least-connections", label: "Least Connections" },
+          { value: "ip-hash", label: "IP Hash" },
+        ],
+        defaultValue: "round-robin",
+      },
+      healthCheckInterval: {
+        key: "healthCheckInterval",
+        label: "Health check interval",
+        type: "number",
+        unit: "ms",
+        defaultValue: 5000,
+        min: 1000,
+        max: 60000,
+      },
+      maxConnectionsPerServer: {
+        key: "maxConnectionsPerServer",
+        label: "Max connections per server",
+        type: "number",
+        defaultValue: 1000,
+        min: 1,
+        max: 10000,
+      },
+      failoverPolicy: {
+        key: "failoverPolicy",
+        label: "Failover policy",
+        type: "text",
+        defaultValue: "automatic",
+      },
+    },
   },
   {
     id: "sync-compute",
@@ -96,6 +245,51 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Server",
     category: "Routing & Compute",
     component: <Server size={16} className="text-blue-500" />,
+    configurations: {
+      cpuCores: {
+        key: "cpuCores",
+        label: "CPU cores",
+        type: "number",
+        defaultValue: 4,
+        min: 1,
+        max: 64,
+      },
+      ram: {
+        key: "ram",
+        label: "RAM",
+        type: "number",
+        unit: "GB",
+        defaultValue: 8,
+        min: 1,
+        max: 512,
+      },
+      maxConcurrentRequests: {
+        key: "maxConcurrentRequests",
+        label: "Max concurrent requests",
+        type: "number",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      avgProcessingLatency: {
+        key: "avgProcessingLatency",
+        label: "Average processing latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 200,
+        min: 1,
+        max: 10000,
+      },
+      failureRate: {
+        key: "failureRate",
+        label: "Failure rate",
+        type: "number",
+        unit: "%",
+        defaultValue: 0.1,
+        min: 0,
+        max: 100,
+      },
+    },
   },
   {
     id: "async-compute",
@@ -103,6 +297,45 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Zap",
     category: "Routing & Compute",
     component: <Zap size={16} className="text-yellow-500" />,
+    configurations: {
+      cpuCores: {
+        key: "cpuCores",
+        label: "CPU cores",
+        type: "number",
+        defaultValue: 4,
+        min: 1,
+        max: 64,
+      },
+      ram: {
+        key: "ram",
+        label: "RAM",
+        type: "number",
+        unit: "GB",
+        defaultValue: 8,
+        min: 1,
+        max: 512,
+      },
+      jobsPerSecCapacity: {
+        key: "jobsPerSecCapacity",
+        label: "Jobs/sec capacity",
+        type: "number",
+        defaultValue: 50,
+        min: 1,
+        max: 10000,
+      },
+      retryPolicy: {
+        key: "retryPolicy",
+        label: "Retry policy",
+        type: "text",
+        defaultValue: "exponential-backoff",
+      },
+      boundQueueId: {
+        key: "boundQueueId",
+        label: "Bound queue ID",
+        type: "text",
+        defaultValue: "main-queue",
+      },
+    },
   },
   {
     id: "message-queue",
@@ -110,6 +343,51 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Activity",
     category: "Routing & Compute",
     component: <Activity size={16} className="text-red-500" />,
+    configurations: {
+      queueSize: {
+        key: "queueSize",
+        label: "Queue size",
+        type: "number",
+        unit: "messages",
+        defaultValue: 10000,
+        min: 1,
+        max: 1000000,
+      },
+      processingRate: {
+        key: "processingRate",
+        label: "Processing rate",
+        type: "number",
+        unit: "msg/sec",
+        defaultValue: 1000,
+        min: 1,
+        max: 100000,
+      },
+      retryAttempts: {
+        key: "retryAttempts",
+        label: "Retry attempts",
+        type: "number",
+        defaultValue: 3,
+        min: 0,
+        max: 10,
+      },
+      messageTtl: {
+        key: "messageTtl",
+        label: "Message TTL",
+        type: "number",
+        unit: "seconds",
+        defaultValue: 3600,
+        min: 1,
+        max: 86400,
+      },
+      consumerCount: {
+        key: "consumerCount",
+        label: "Consumer count",
+        type: "number",
+        defaultValue: 5,
+        min: 1,
+        max: 100,
+      },
+    },
   },
 
   // Data & Storage
@@ -119,6 +397,62 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Database",
     category: "Data & Storage",
     component: <Database size={16} className="text-green-500" />,
+    configurations: {
+      type: {
+        key: "type",
+        label: "Type",
+        type: "select",
+        options: [
+          { value: "sql", label: "SQL" },
+          { value: "nosql", label: "NoSQL" },
+        ],
+        defaultValue: "sql",
+      },
+      maxConnections: {
+        key: "maxConnections",
+        label: "Max connections",
+        type: "number",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      readLatency: {
+        key: "readLatency",
+        label: "Read latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 5,
+        min: 1,
+        max: 1000,
+      },
+      writeLatency: {
+        key: "writeLatency",
+        label: "Write latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 10,
+        min: 1,
+        max: 1000,
+      },
+      queryThroughput: {
+        key: "queryThroughput",
+        label: "Query throughput",
+        type: "number",
+        unit: "req/sec",
+        defaultValue: 1000,
+        min: 1,
+        max: 100000,
+      },
+      storageSize: {
+        key: "storageSize",
+        label: "Storage size",
+        type: "number",
+        unit: "GB",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+    },
   },
   {
     id: "cache",
@@ -126,6 +460,46 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "HardDrive",
     category: "Data & Storage",
     component: <HardDrive size={16} className="text-blue-400" />,
+    configurations: {
+      memory: {
+        key: "memory",
+        label: "Memory",
+        type: "number",
+        unit: "GB",
+        defaultValue: 8,
+        min: 1,
+        max: 512,
+      },
+      evictionPolicy: {
+        key: "evictionPolicy",
+        label: "Eviction policy",
+        type: "select",
+        options: [
+          { value: "lru", label: "LRU" },
+          { value: "fifo", label: "FIFO" },
+          { value: "lfu", label: "LFU" },
+        ],
+        defaultValue: "lru",
+      },
+      cacheHitRatio: {
+        key: "cacheHitRatio",
+        label: "Cache hit ratio",
+        type: "number",
+        unit: "%",
+        defaultValue: 95,
+        min: 0,
+        max: 100,
+      },
+      accessLatency: {
+        key: "accessLatency",
+        label: "Access latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 1,
+        min: 0.1,
+        max: 100,
+      },
+    },
   },
   {
     id: "object-storage",
@@ -133,6 +507,53 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "HardDrive",
     category: "Data & Storage",
     component: <HardDrive size={16} className="text-gray-500" />,
+    configurations: {
+      storageCapacity: {
+        key: "storageCapacity",
+        label: "Storage capacity",
+        type: "number",
+        unit: "GB",
+        defaultValue: 1000,
+        min: 1,
+        max: 1000000,
+      },
+      readLatency: {
+        key: "readLatency",
+        label: "Read latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      writeLatency: {
+        key: "writeLatency",
+        label: "Write latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 200,
+        min: 1,
+        max: 10000,
+      },
+      throughput: {
+        key: "throughput",
+        label: "Throughput",
+        type: "number",
+        unit: "MB/s",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      availability: {
+        key: "availability",
+        label: "Availability",
+        type: "number",
+        unit: "%",
+        defaultValue: 99.9,
+        min: 90,
+        max: 100,
+      },
+    },
   },
   {
     id: "search-service",
@@ -140,6 +561,42 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Search",
     category: "Data & Storage",
     component: <Search size={16} className="text-indigo-500" />,
+    configurations: {
+      queryLatency: {
+        key: "queryLatency",
+        label: "Query latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 50,
+        min: 1,
+        max: 1000,
+      },
+      indexSize: {
+        key: "indexSize",
+        label: "Index size",
+        type: "number",
+        unit: "GB",
+        defaultValue: 10,
+        min: 1,
+        max: 1000,
+      },
+      maxQps: {
+        key: "maxQps",
+        label: "Max QPS",
+        type: "number",
+        defaultValue: 1000,
+        min: 1,
+        max: 100000,
+      },
+      replicationFactor: {
+        key: "replicationFactor",
+        label: "Replication factor",
+        type: "number",
+        defaultValue: 3,
+        min: 1,
+        max: 10,
+      },
+    },
   },
 
   // Performance & Access
@@ -149,6 +606,44 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Globe",
     category: "Performance & Access",
     component: <Globe size={16} className="text-cyan-500" />,
+    configurations: {
+      cacheSize: {
+        key: "cacheSize",
+        label: "Cache size",
+        type: "number",
+        unit: "GB",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      cacheHitRatio: {
+        key: "cacheHitRatio",
+        label: "Cache hit ratio",
+        type: "number",
+        unit: "%",
+        defaultValue: 90,
+        min: 0,
+        max: 100,
+      },
+      latencyReduction: {
+        key: "latencyReduction",
+        label: "Latency reduction",
+        type: "number",
+        unit: "%",
+        defaultValue: 70,
+        min: 0,
+        max: 100,
+      },
+      regionalPresence: {
+        key: "regionalPresence",
+        label: "Regional presence",
+        type: "number",
+        unit: "count",
+        defaultValue: 5,
+        min: 1,
+        max: 50,
+      },
+    },
   },
   {
     id: "auth-service",
@@ -156,6 +651,43 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Shield",
     category: "Performance & Access",
     component: <Shield size={16} className="text-emerald-600" />,
+    configurations: {
+      tokenExpiry: {
+        key: "tokenExpiry",
+        label: "Token expiry",
+        type: "number",
+        unit: "minutes",
+        defaultValue: 60,
+        min: 1,
+        max: 1440,
+      },
+      authLatency: {
+        key: "authLatency",
+        label: "Auth latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 100,
+        min: 1,
+        max: 1000,
+      },
+      maxConcurrentSessions: {
+        key: "maxConcurrentSessions",
+        label: "Max concurrent sessions",
+        type: "number",
+        defaultValue: 10000,
+        min: 1,
+        max: 1000000,
+      },
+      successFailureRatio: {
+        key: "successFailureRatio",
+        label: "Success/failure ratio",
+        type: "number",
+        unit: "%",
+        defaultValue: 99.5,
+        min: 90,
+        max: 100,
+      },
+    },
   },
 
   // Monitoring & Infra
@@ -165,6 +697,32 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Monitor",
     category: "Monitoring & Infra",
     component: <Monitor size={16} className="text-slate-600" />,
+    configurations: {
+      samplingInterval: {
+        key: "samplingInterval",
+        label: "Sampling interval",
+        type: "number",
+        unit: "ms",
+        defaultValue: 1000,
+        min: 100,
+        max: 60000,
+      },
+      metricsTracked: {
+        key: "metricsTracked",
+        label: "Metrics tracked",
+        type: "text",
+        defaultValue: "CPU, latency, throughput",
+      },
+      alertThreshold: {
+        key: "alertThreshold",
+        label: "Alert threshold",
+        type: "number",
+        unit: "%",
+        defaultValue: 80,
+        min: 0,
+        max: 100,
+      },
+    },
   },
   {
     id: "network-link",
@@ -172,6 +730,44 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Link",
     category: "Monitoring & Infra",
     component: <Link size={16} className="text-gray-400" />,
+    configurations: {
+      bandwidth: {
+        key: "bandwidth",
+        label: "Bandwidth",
+        type: "number",
+        unit: "Mbps",
+        defaultValue: 1000,
+        min: 1,
+        max: 100000,
+      },
+      latency: {
+        key: "latency",
+        label: "Latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 10,
+        min: 1,
+        max: 1000,
+      },
+      packetLoss: {
+        key: "packetLoss",
+        label: "Packet loss",
+        type: "number",
+        unit: "%",
+        defaultValue: 0.1,
+        min: 0,
+        max: 100,
+      },
+      reliability: {
+        key: "reliability",
+        label: "Reliability",
+        type: "number",
+        unit: "%",
+        defaultValue: 99.9,
+        min: 90,
+        max: 100,
+      },
+    },
   },
 
   // Additional common services
@@ -181,6 +777,42 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "Users",
     category: "Routing & Compute",
     component: <Users size={16} className="text-violet-500" />,
+    configurations: {
+      cpuCores: {
+        key: "cpuCores",
+        label: "CPU cores",
+        type: "number",
+        defaultValue: 4,
+        min: 1,
+        max: 64,
+      },
+      ram: {
+        key: "ram",
+        label: "RAM",
+        type: "number",
+        unit: "GB",
+        defaultValue: 8,
+        min: 1,
+        max: 512,
+      },
+      maxConcurrentRequests: {
+        key: "maxConcurrentRequests",
+        label: "Max concurrent requests",
+        type: "number",
+        defaultValue: 100,
+        min: 1,
+        max: 10000,
+      },
+      avgProcessingLatency: {
+        key: "avgProcessingLatency",
+        label: "Average processing latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 150,
+        min: 1,
+        max: 10000,
+      },
+    },
   },
   {
     id: "payment-service",
@@ -188,5 +820,77 @@ export const nodeTypeOptions: NodeTypeOption[] = [
     icon: "CreditCard",
     category: "Routing & Compute",
     component: <CreditCard size={16} className="text-pink-500" />,
+    configurations: {
+      cpuCores: {
+        key: "cpuCores",
+        label: "CPU cores",
+        type: "number",
+        defaultValue: 4,
+        min: 1,
+        max: 64,
+      },
+      ram: {
+        key: "ram",
+        label: "RAM",
+        type: "number",
+        unit: "GB",
+        defaultValue: 8,
+        min: 1,
+        max: 512,
+      },
+      maxConcurrentRequests: {
+        key: "maxConcurrentRequests",
+        label: "Max concurrent requests",
+        type: "number",
+        defaultValue: 50,
+        min: 1,
+        max: 10000,
+      },
+      avgProcessingLatency: {
+        key: "avgProcessingLatency",
+        label: "Average processing latency",
+        type: "number",
+        unit: "ms",
+        defaultValue: 300,
+        min: 1,
+        max: 10000,
+      },
+      securityLevel: {
+        key: "securityLevel",
+        label: "Security level",
+        type: "select",
+        options: [
+          { value: "standard", label: "Standard" },
+          { value: "high", label: "High" },
+          { value: "critical", label: "Critical" },
+        ],
+        defaultValue: "high",
+      },
+    },
   },
 ];
+
+// Export the original nodeOptions as nodeTypeOptions for backward compatibility
+export const nodeTypeOptions = nodeOptions;
+
+// Helper function to get configuration for a specific node type
+export const getNodeTypeConfiguration = (
+  nodeTypeId: string
+): NodeConfiguration | null => {
+  const nodeType = nodeOptions.find((option) => option.id === nodeTypeId);
+  return nodeType?.configurations || null;
+};
+
+// Helper function to get default configuration values for a node type
+export const getDefaultConfigurationValues = (
+  nodeTypeId: string
+): Record<string, string | number | boolean> => {
+  const config = getNodeTypeConfiguration(nodeTypeId);
+  if (!config) return {};
+
+  const defaults: Record<string, string | number | boolean> = {};
+  Object.values(config).forEach((field) => {
+    defaults[field.key] = field.defaultValue;
+  });
+  return defaults;
+};

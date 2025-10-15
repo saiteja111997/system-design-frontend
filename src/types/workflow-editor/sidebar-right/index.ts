@@ -52,6 +52,7 @@ export interface AddNodeContentProps {
     label: string;
     icon: string;
     type?: string;
+    configurations?: Record<string, string | number | boolean>;
   }) => void;
 }
 
@@ -60,7 +61,11 @@ export interface EditNodeContentProps {
   nodes: Node[];
   onUpdateNode?: (
     nodeId: number,
-    updates: { label: string; icon: string }
+    updates: {
+      label: string;
+      icon: string;
+      configurations?: Record<string, string | number | boolean>;
+    }
   ) => void;
 }
 

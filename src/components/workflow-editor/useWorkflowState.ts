@@ -13,8 +13,59 @@ import {
   edgeExists,
   filterEdgesForNode,
 } from "@/utils/workflow";
+import {
+  nodeTypeOptions,
+  getDefaultConfigurationValues,
+} from "@/data/nodeTypeOptions";
 
-const initialNodes: Node[] = [
+// Helper function to find node type ID by label
+const findNodeTypeByLabel = (label: string): string | null => {
+  const nodeType = nodeTypeOptions.find(
+    (type) =>
+      type.label.toLowerCase().includes(label.toLowerCase()) ||
+      label.toLowerCase().includes(type.label.toLowerCase())
+  );
+  return nodeType?.id || null;
+};
+
+// Helper function to add default configurations to existing nodes
+const addDefaultConfigurations = (nodes: Node[]): Node[] => {
+  return nodes.map((node) => {
+    if (node.configurations) {
+      return node; // Already has configurations
+    }
+
+    // Try to find matching node type by label
+    let nodeTypeId = findNodeTypeByLabel(node.label);
+
+    // Fallback mapping for specific cases
+    if (!nodeTypeId) {
+      if (node.label.includes("Client")) nodeTypeId = "client-app";
+      else if (node.label.includes("Gateway")) nodeTypeId = "api-gateway";
+      else if (node.label.includes("LB")) nodeTypeId = "load-balancer";
+      else if (node.label.includes("Service"))
+        nodeTypeId = "application-server";
+      else if (
+        node.label.includes("Server") ||
+        node.label.includes("S1") ||
+        node.label.includes("S2") ||
+        node.label.includes("S3")
+      )
+        nodeTypeId = "application-server";
+      else if (node.label.includes("DB")) nodeTypeId = "database";
+      else nodeTypeId = "application-server"; // Default fallback
+    }
+
+    const defaultConfigurations = getDefaultConfigurationValues(nodeTypeId);
+
+    return {
+      ...node,
+      configurations: defaultConfigurations,
+    };
+  });
+};
+
+const baseInitialNodes: Node[] = [
   // Client
   { id: 1, label: "Client", x: 160, y: 290, type: "start", icon: "Smartphone" },
 
@@ -135,6 +186,9 @@ const initialNodes: Node[] = [
     icon: "Database",
   },
 ];
+
+// Add default configurations to all initial nodes
+const initialNodes: Node[] = addDefaultConfigurations(baseInitialNodes);
 const initialEdges: Edge[] = [
   // Client to API Gateway
   { id: "e1", source: 1, target: 2 },
@@ -197,15 +251,17 @@ export const useWorkflowState = () => {
     label: string;
     icon: string;
     type?: string;
+    configurations?: Record<string, string | number | boolean>;
   }) => {
     const newId = generateNodeId(nodes);
     const position = generateRandomPosition();
 
     // Validate the type parameter
     const validTypes: NodeType[] = ["start", "process", "end"];
-    const nodePositionType = nodeType?.type && validTypes.includes(nodeType.type as NodeType) 
-      ? (nodeType.type as NodeType) 
-      : "process";
+    const nodePositionType =
+      nodeType?.type && validTypes.includes(nodeType.type as NodeType)
+        ? (nodeType.type as NodeType)
+        : "process";
 
     setNodes([
       ...nodes,
@@ -216,6 +272,7 @@ export const useWorkflowState = () => {
         y: position.y,
         type: nodePositionType,
         icon: nodeType?.icon || "Circle",
+        configurations: nodeType?.configurations || {},
       } as Node,
     ]);
   };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,8 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { nodeTypeOptions } from "@/data/nodeTypeOptions";
+import {
+  nodeTypeOptions,
+  getNodeTypeConfiguration,
+  getDefaultConfigurationValues,
+} from "@/data/nodeTypeOptions";
 import { EditNodeContentProps } from "@/types/workflow-editor/sidebar-right";
+import ConfigurationForm from "./ConfigurationForm";
 
 const EditNodeContent: React.FC<EditNodeContentProps> = ({
   nodes,
@@ -17,14 +22,61 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [selectedNodeType, setSelectedNodeType] = useState<string>("");
+  const [configurations, setConfigurations] = useState<
+    Record<string, string | number | boolean>
+  >({});
+
+  // Load existing configurations when a node is selected
+  useEffect(() => {
+    if (selectedNodeId) {
+      const selectedNode = nodes.find((node) => node.id === selectedNodeId);
+      if (selectedNode) {
+        // If node has configurations, use them; otherwise use defaults for its current type
+        if (selectedNode.configurations) {
+          setConfigurations(selectedNode.configurations);
+        } else {
+          // Get the node's current type and load defaults
+          const nodeType = nodeTypeOptions.find(
+            (type) => type.label === selectedNode.label
+          );
+          if (nodeType) {
+            const defaultValues = getDefaultConfigurationValues(nodeType.id);
+            setConfigurations(defaultValues);
+            setSelectedNodeType(nodeType.id);
+          }
+        }
+      }
+    } else {
+      setConfigurations({});
+    }
+  }, [selectedNodeId, nodes]);
+
+  // Load default configurations when node type changes
+  useEffect(() => {
+    if (selectedNodeType) {
+      const defaultValues = getDefaultConfigurationValues(selectedNodeType);
+      setConfigurations(defaultValues);
+    }
+  }, [selectedNodeType]);
 
   const handleNodeSelect = (nodeId: string) => {
     setSelectedNodeId(parseInt(nodeId));
     setSelectedNodeType(""); // Reset node type when changing node
+    setConfigurations({});
   };
 
   const handleNodeTypeChange = (nodeTypeId: string) => {
     setSelectedNodeType(nodeTypeId);
+  };
+
+  const handleConfigurationChange = (
+    key: string,
+    value: string | number | boolean
+  ) => {
+    setConfigurations((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   const handleEditNodeDone = () => {
@@ -35,10 +87,12 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
       onUpdateNode(selectedNodeId, {
         label: nodeType.label,
         icon: nodeType.icon,
+        configurations: configurations,
       });
       // Reset selections after successful update
       setSelectedNodeId(null);
       setSelectedNodeType("");
+      setConfigurations({});
     }
   };
 
@@ -103,13 +157,36 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
 
           {/* Apply Changes Button */}
           {selectedNodeType && (
-            <Button
-              onClick={handleEditNodeDone}
-              className="w-full bg-green-600 hover:bg-green-700 text-white mt-3"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              Apply Changes
-            </Button>
+            <>
+              {/* Configuration Form */}
+              {(() => {
+                const nodeConfig = getNodeTypeConfiguration(selectedNodeType);
+                return (
+                  nodeConfig && (
+                    <div className="mt-4 space-y-4">
+                      <h4 className="text-md font-medium text-slate-700 dark:text-slate-300">
+                        Node Configuration
+                      </h4>
+                      <div className="border rounded-lg p-4 dark:border-gray-700">
+                        <ConfigurationForm
+                          configurations={nodeConfig}
+                          values={configurations}
+                          onChange={handleConfigurationChange}
+                        />
+                      </div>
+                    </div>
+                  )
+                );
+              })()}
+
+              <Button
+                onClick={handleEditNodeDone}
+                className="w-full bg-green-600 hover:bg-green-700 text-white mt-3"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Apply Changes
+              </Button>
+            </>
           )}
         </div>
       )}
