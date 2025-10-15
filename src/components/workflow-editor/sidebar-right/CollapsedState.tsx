@@ -33,30 +33,6 @@ const CollapsedState: React.FC<CollapsedStateProps> = ({
           activeItem={null} // No active item when collapsed
         />
       </div>
-
-      {/* RPS indicator */}
-      <div className="text-center">
-        <div
-          className={`w-3 h-3 rounded-full ${rpsColorClass} animate-pulse mx-auto mb-1`}
-        ></div>
-        <div className={`text-xs font-mono ${rpsColorClass}`}>
-          {Math.round(requestsPerSecond / 1000)}K
-        </div>
-      </div>
-
-      {/* Server load indicator */}
-      <div className="text-center">
-        <div className="w-3 h-3 rounded border border-red-500 flex items-center justify-center mx-auto mb-1">
-          <div className="w-1 h-1 bg-red-500 rounded-sm"></div>
-        </div>
-        <div
-          className={`text-xs font-mono ${
-            getLoadColor(serverLoad).split(" ")[0]
-          }`}
-        >
-          {serverLoad}%
-        </div>
-      </div>
     </motion.div>
   );
 };
