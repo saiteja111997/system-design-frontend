@@ -17,14 +17,26 @@ const SidebarRight: React.FC<SidebarRightProps> = ({
   onUpdateNode,
 }) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<string>("add-node");
+  const [selectedTab, setSelectedTab] = useState<string | null>(null);
 
   const handleToggleSidebar = () => {
     setSidebarExpanded(!sidebarExpanded);
+    // When expanding sidebar, set default tab if none selected
+    if (!sidebarExpanded && !selectedTab) {
+      setSelectedTab("add-node");
+    }
+    // When collapsing sidebar, reset selected tab
+    if (sidebarExpanded) {
+      setSelectedTab(null);
+    }
   };
 
   const handleDockItemClick = (itemId: string) => {
     setSelectedTab(itemId);
+    // If sidebar is collapsed, expand it when an item is clicked
+    if (!sidebarExpanded) {
+      setSidebarExpanded(true);
+    }
   };
 
   return (
@@ -55,6 +67,7 @@ const SidebarRight: React.FC<SidebarRightProps> = ({
         onUpdateNode={onUpdateNode}
         requestsPerSecond={requestsPerSecond}
         onRequestsPerSecondChange={onRequestsPerSecondChange}
+        onTabChange={handleDockItemClick}
       />
 
       {/* Footer Settings */}

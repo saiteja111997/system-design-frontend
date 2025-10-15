@@ -29,7 +29,7 @@ const CollapsedState: React.FC<CollapsedStateProps> = ({
           tooltipPosition="left"
           collapsible={false}
           items={sidebarDockItems}
-          onItemClick={onTabChange}
+          onItemClick={(itemId: string, _index: number) => onTabChange(itemId)}
           activeItem={null} // No active item when collapsed
         />
       </div>
