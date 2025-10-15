@@ -151,7 +151,10 @@ const WorkflowEditorContent: React.FC = () => {
   };
 
   const workflowContent = (
-    <>
+    <WorkflowProvider
+      requestsPerSecond={requestsPerSecond}
+      setRequestsPerSecond={setRequestsPerSecond}
+    >
       {/* Only show header in normal mode, not in fullscreen */}
       {!isFullscreen && <WorkflowHeader onAddNode={addNode} />}
       <div
@@ -241,7 +244,7 @@ const WorkflowEditorContent: React.FC = () => {
           <WorkflowFooter nodeCount={nodes.length} edgeCount={edges.length} />
         )}
       </div>
-    </>
+    </WorkflowProvider>
   );
 
   return (
@@ -277,14 +280,9 @@ const WorkflowEditorContent: React.FC = () => {
 const AnimatedWorkflowEditor: React.FC = () => {
   return (
     <FullscreenProvider>
-      <WorkflowProvider
-        requestsPerSecond={1500}
-        setRequestsPerSecond={() => {}}
-      >
-        <CanvasControlsProvider>
-          <WorkflowEditorContent />
-        </CanvasControlsProvider>
-      </WorkflowProvider>
+      <CanvasControlsProvider>
+        <WorkflowEditorContent />
+      </CanvasControlsProvider>
     </FullscreenProvider>
   );
 };
