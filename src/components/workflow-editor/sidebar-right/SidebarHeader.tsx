@@ -16,7 +16,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({ sidebarExpanded }) => {
         animate={{ scale: sidebarExpanded ? 1 : 1 }}
         className={`flex items-center ${sidebarExpanded ? "gap-3" : "gap-0"}`}
       >
-        <div className="w-11 h-11 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+        <div className="w-11 h-11 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
           <Settings className="w-6 h-6 text-white" />
         </div>
         <motion.div

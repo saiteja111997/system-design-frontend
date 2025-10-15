@@ -207,7 +207,7 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
         disabled={!allSelectionsMade}
         className={`w-full ${
           allSelectionsMade
-            ? "bg-blue-600 hover:bg-blue-700 text-white"
+            ? "bg-gradient-primary text-white"
             : "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
         } transition-colors`}
       >

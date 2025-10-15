@@ -24,6 +24,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
         collapsible={false}
         items={sidebarDockItems}
         onItemClick={onTabChange}
+        activeItem={selectedTab}
         className="relative"
       />
     </motion.div>

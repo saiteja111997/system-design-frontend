@@ -17,7 +17,8 @@ import {
   useFullscreenContext,
 } from "@/contexts/FullscreenContext";
 import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
-import { dockItems } from "@/data/dockItems";
+import { MIN_ZOOM, MAX_ZOOM } from "@/hooks/useCanvasControls";
+import { canvasDockItems } from "@/data/canvasDockItems";
 import {
   createDockItemHandlers,
   handleDockItemClick,
@@ -25,6 +26,7 @@ import {
 import SidebarRight from "./sidebar-right/SidebarRight";
 import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
+import ZoomIndicator from "./ZoomIndicator";
 import { AnnotationLayer, type Tool } from "./AnnotationLayer";
 import "@/styles/workflowAnimations.css";
 
@@ -203,14 +205,25 @@ const WorkflowEditorContent: React.FC = () => {
               collapsible={false}
               position="top-left"
               responsive="top-left"
-              items={dockItems}
+              items={canvasDockItems}
               onItemClick={handleWorkflowDockItemClick}
-              activeTool={activeTool}
+              activeItem={activeTool}
             />
 
             {/* Run Button - positioned below DockNavigation */}
             <div className="absolute bottom-20 left-4 z-20">
               <RunButton runCode={runCode} onToggle={setRunCode} />
+            </div>
+
+            {/* Zoom Indicator - positioned on the right side before sidebar */}
+            <div className="absolute top-4 right-22 z-20">
+              <ZoomIndicator
+                currentZoom={canvasControls.transform.scale}
+                minZoom={MIN_ZOOM}
+                maxZoom={MAX_ZOOM}
+                onZoomChange={canvasControls.setZoom}
+                onResetZoom={canvasControls.resetZoom}
+              />
             </div>
           </div>
 

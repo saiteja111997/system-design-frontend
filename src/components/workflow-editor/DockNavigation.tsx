@@ -13,18 +13,21 @@ export interface DockItem {
 }
 
 interface DockNavigationProps {
-  activeTool?: string;
+  activeItem?: string | null;
   position?: "top" | "bottom" | "left" | "right" | "top-left";
   collapsible?: boolean;
   responsive?: "top" | "bottom" | "left" | "right" | "top-left";
+  direction?: "horizontal" | "vertical"; // New prop to control layout direction
+  tooltipPosition?: "left" | "right" | "top" | "bottom"; // New prop to control tooltip placement
   items: DockItem[]; // Accept items as prop
   onItemClick?: (itemId: string, index: number) => void; // Optional custom click handler
   onMouseEnter?: (index: number) => void; // Optional mouse enter handler
   onMouseLeave?: () => void; // Optional mouse leave handler
   className?: string; // Additional custom classes
+  idMapping?: Record<string, string>; // Optional mapping for active state detection
 }
 
-// Map external dock item ids to internal activeTool identifiers
+// Map external dock item ids to internal activeItem identifiers
 // Keeping this at module scope avoids re-allocating the object on every render & within each map iteration.
 const TOOL_ID_MAP: Record<string, string> = {
   "selection-tool": "select",
@@ -34,15 +37,18 @@ const TOOL_ID_MAP: Record<string, string> = {
 };
 
 const DockNavigation: React.FC<DockNavigationProps> = ({
-  position = "bottom",
+  position,
   collapsible = false,
-  responsive = "bottom",
+  responsive,
+  direction,
+  tooltipPosition,
   items,
   onItemClick,
   onMouseEnter,
   onMouseLeave,
   className = "",
-  activeTool,
+  activeItem,
+  idMapping,
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [isDockVisible, setDockVisible] = useState(!collapsible);
@@ -90,6 +96,13 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
   }, [position, responsive, collapsible]);
 
   const getItemTransform = (index: number) => {
+    // Disable transform animations when no position is specified (in document flow)
+    if (!currentPosition) {
+      return hoverIndex === index
+        ? { scale: 1.1, x: 0, y: 0 }
+        : { scale: 1, x: 0, y: 0 };
+    }
+
     if (hoverIndex === index) {
       switch (currentPosition) {
         case "left":
@@ -114,6 +127,11 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
 
   // Get position classes for the container
   const getContainerClasses = () => {
+    // If no position is defined, use relative positioning (flow with document)
+    if (!currentPosition) {
+      return "relative z-20";
+    }
+
     const baseClasses = "absolute z-20";
     switch (currentPosition) {
       case "left":
@@ -135,19 +153,50 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
   const getDockClasses = () => {
     const baseClasses =
       "flex items-center justify-center p-2 gap-[6px] bg-white/20 bg-white/20 dark:bg-slate-900/10 backdrop-blur-md border border-slate-900/5 border-slate-900/20 dark:border-white/10 rounded-xl shadow-l dark:shadow-2xl";
-    const layoutClass =
-      currentPosition === "left" ||
-      currentPosition === "right" ||
-      currentPosition === "top-left"
-        ? "flex-col"
-        : "flex-row";
+
+    // Determine layout direction
+    let layoutClass;
+    if (direction) {
+      // Use explicit direction prop if provided
+      layoutClass = direction === "vertical" ? "flex-col" : "flex-row";
+    } else {
+      // Fall back to position-based logic
+      layoutClass =
+        currentPosition === "left" ||
+        currentPosition === "right" ||
+        currentPosition === "top-left"
+          ? "flex-col"
+          : "flex-row"; // Default to flex-row when no position or horizontal positions
+    }
+
     return `${baseClasses} ${layoutClass}`;
   };
 
   // Get tooltip position classes
   const getTooltipClasses = () => {
     const baseClasses =
-      "opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none absolute z-50 bg-gray-100/95 bg-gray-100/95 dark:bg-gray-900/90 backdrop-blur-sm text-gray-800 text-gray-800 dark:text-white text-xs px-2 py-1 rounded font-medium whitespace-nowrap shadow-lg border border-slate-900/20 border-slate-900/20 dark:border-white/10";
+      "opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none absolute z-[99999999] bg-gray-100/95 bg-gray-100/95 dark:bg-gray-900/90 backdrop-blur-sm text-gray-800 text-gray-800 dark:text-white text-xs px-2 py-1 rounded font-medium whitespace-nowrap shadow-lg border border-slate-900/20 border-slate-900/20 dark:border-white/10";
+
+    // Use explicit tooltipPosition if provided
+    if (tooltipPosition) {
+      switch (tooltipPosition) {
+        case "left":
+          return `${baseClasses} right-full mr-2 top-1/2 -translate-y-1/2`;
+        case "right":
+          return `${baseClasses} left-full ml-2 top-1/2 -translate-y-1/2`;
+        case "top":
+          return `${baseClasses} bottom-full mb-2 left-1/2 -translate-x-1/2`;
+        case "bottom":
+          return `${baseClasses} top-full mt-2 left-1/2 -translate-x-1/2`;
+        default:
+          return baseClasses;
+      }
+    }
+
+    // Fall back to position-based logic when no explicit tooltipPosition
+    if (!currentPosition) {
+      return `${baseClasses} bottom-full mb-2 left-1/2 -translate-x-1/2`;
+    }
 
     switch (currentPosition) {
       case "left":
@@ -184,7 +233,10 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
       >
         {items.map((item: DockItem, index: number) => {
           // Determine if current item matches active tool
-          const isActive = !!activeTool && TOOL_ID_MAP[item.id] === activeTool;
+          const mappingToUse = idMapping || TOOL_ID_MAP;
+          const isActive =
+            (!!activeItem && mappingToUse[item.id] === activeItem) ||
+            item.id === activeItem;
           return (
             <motion.div
               key={item.id}

@@ -1,5 +1,4 @@
 import {
-  Plus,
   Sparkles,
   MousePointer,
   Square,
@@ -10,22 +9,24 @@ import {
   Type,
   MessageSquare,
   Maximize,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
-export const dockItems = [
+export const canvasDockItems = [
   {
     id: "zoom-in",
     name: "Zoom-in",
     tooltip: "Zoom-in",
     route: "",
-    component: <Plus size={14} className="text-slate-700 dark:text-white" />,
+    component: <ZoomIn size={14} className="text-slate-700 dark:text-white" />,
   },
   {
     id: "zoom-out",
     name: "Zoom-out",
     tooltip: "Zoom-out",
     route: "",
-    component: <Minus size={14} className="text-slate-700 dark:text-white" />,
+    component: <ZoomOut size={14} className="text-slate-700 dark:text-white" />,
   },
   {
     id: "ai-diagram",

@@ -16,8 +16,13 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
   onUpdateNode,
   requestsPerSecond,
   onRequestsPerSecondChange,
+  onTabChange,
 }) => {
   const getSelectedTabContent = () => {
+    if (!selectedTab) {
+      return null; // No content when no tab is selected
+    }
+
     switch (selectedTab) {
       case "add-node":
         return <AddNodeContent onAddNode={onAddNode} />;
@@ -49,7 +54,10 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
     <div className="flex-1 p-4 relative overflow-y-auto">
       {/* Collapsed State */}
       {!sidebarExpanded && (
-        <CollapsedState requestsPerSecond={requestsPerSecond} />
+        <CollapsedState
+          requestsPerSecond={requestsPerSecond}
+          onTabChange={onTabChange}
+        />
       )}
 
       {/* Expanded Content */}

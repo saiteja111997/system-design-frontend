@@ -127,7 +127,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
       <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-600 pb-2">
         Configuration
       </h4>
-      <div className="space-y-4 max-h-64 overflow-y-auto">
+      <div className="space-y-4">
         {Object.values(configurations).map(renderField)}
       </div>
     </div>

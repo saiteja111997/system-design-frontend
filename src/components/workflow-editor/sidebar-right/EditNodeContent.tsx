@@ -130,7 +130,7 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
       {selectedNodeId && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Change Node Type:
+            Change Node To:
           </label>
           <Select onValueChange={handleNodeTypeChange} value={selectedNodeType}>
             <SelectTrigger className="w-full">
@@ -181,7 +181,7 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
 
               <Button
                 onClick={handleEditNodeDone}
-                className="w-full bg-green-600 hover:bg-green-700 text-white mt-3"
+                className="w-full bg-gradient-primary text-white mt-3"
               >
                 <Check className="w-4 h-4 mr-2" />
                 Apply Changes

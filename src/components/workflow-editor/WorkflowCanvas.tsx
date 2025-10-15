@@ -29,6 +29,9 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       handlePanStart,
       handlePanMove,
       handlePanEnd,
+      handleTouchStart,
+      handleTouchMove,
+      handleTouchEnd,
       handleWheel,
       getTransformStyle,
     } = useCanvasControlsContext();
@@ -50,10 +53,14 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
     return (
       <div
         ref={ref}
+        data-canvas-area="true"
         className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMoveCanvas}
         onMouseUp={handleMouseUpCanvas}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onWheel={handleWheel}
         style={globalAnimationStyle}
       >

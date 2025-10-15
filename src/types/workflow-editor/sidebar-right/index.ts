@@ -24,14 +24,14 @@ export interface SidebarHeaderProps {
 // Navigation Tabs Props
 export interface NavigationTabsProps {
   sidebarExpanded: boolean;
-  selectedTab: string;
+  selectedTab: string | null;
   onTabChange: (tabId: string) => void;
 }
 
 // Main Content Area Props
 export interface MainContentAreaProps {
   sidebarExpanded: boolean;
-  selectedTab: string;
+  selectedTab: string | null;
   nodes: Node[];
   onAddNode?: (nodeType: {
     label: string;
@@ -44,6 +44,7 @@ export interface MainContentAreaProps {
   ) => void;
   requestsPerSecond: number;
   onRequestsPerSecondChange: (value: number) => void;
+  onTabChange: (tabId: string) => void;
 }
 
 // Add Node Content Props
@@ -84,6 +85,7 @@ export interface MetricsContentProps {
 // Collapsed State Props
 export interface CollapsedStateProps {
   requestsPerSecond: number;
+  onTabChange: (tabId: string) => void;
 }
 
 // Toggle Button Props

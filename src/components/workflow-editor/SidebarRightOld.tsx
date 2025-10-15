@@ -414,6 +414,7 @@ const SidebarRight: React.FC<SidebarRightProps> = ({
             items={sidebarDockItems}
             onItemClick={handleDockItemClick}
             className="relative"
+            activeItem={selectedTab}
           />
         </motion.div>
       )}
