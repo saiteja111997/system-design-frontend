@@ -244,7 +244,7 @@ export const useWorkflowState = () => {
   const [dragOffset, setDragOffset] = useState<DragOffset>({ x: 0, y: 0 });
   const [connecting, setConnecting] = useState<number | null>(null);
   const [tempLine, setTempLine] = useState<TempLine | null>(null);
-  const [requestsPerSecond, setRequestsPerSecond] = useState<number>(1500);
+  const [requestsPerSecond, setRequestsPerSecond] = useState<number>(1);
   const [runCode, setRunCode] = useState<boolean>(false);
 
   const addNode = (nodeType?: {

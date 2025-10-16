@@ -10,8 +10,8 @@ import {
   Sparkles,
   Video,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 

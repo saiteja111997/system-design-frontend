@@ -5,7 +5,7 @@ import { Menu, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import SidebarLeft from "@/components/SidebarLeft";
+import SidebarLeft from "@/components/sidebar-left/SidebarLeft";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ModeToggle } from "./extras/ModeToggele";
 
