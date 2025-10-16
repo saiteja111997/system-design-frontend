@@ -22,6 +22,19 @@ import type {
 } from './types';
 
 /**
+ * Type guard to check if canvas has required serialization methods
+ */
+function isSerializableCanvas(canvas: unknown): canvas is UtilsFabricCanvas {
+  return (
+    typeof canvas === 'object' &&
+    canvas !== null &&
+    typeof (canvas as Record<string, unknown>).toJSON === 'function' &&
+    typeof (canvas as Record<string, unknown>).getWidth === 'function' &&
+    typeof (canvas as Record<string, unknown>).getHeight === 'function'
+  );
+}
+
+/**
  * Hook for managing canvas initialization and lifecycle
  */
 export function useCanvasSetup() {
@@ -103,8 +116,14 @@ export function useHistoryManager(canvas: FabricCanvas | null) {
   const saveToHistory = useCallback(() => {
     if (!canvas) return;
     
+    // Verify canvas is serializable before attempting to save
+    if (!isSerializableCanvas(canvas)) {
+      console.error('[AnnotationLayer] Canvas does not support serialization methods. Skipping history save.');
+      return;
+    }
+    
     try {
-      const state = serializeCanvas(canvas as UtilsFabricCanvas);
+      const state = serializeCanvas(canvas);
       historyManagerRef.current.push(state);
     } catch (error) {
       console.error('[AnnotationLayer] Failed to save history:', error);
