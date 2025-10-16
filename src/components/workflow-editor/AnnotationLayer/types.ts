@@ -121,6 +121,10 @@ export interface AnnotationLayerHandle {
   redo(): void;
   /** Gets canvas instance for advanced operations */
   getCanvas(): FabricCanvas | null;
+  /** Exports entire history stack for persistence */
+  exportHistory(): { history: CanvasState[]; currentIndex: number } | null;
+  /** Imports entire history stack from persistence */
+  importHistory(data: { history: CanvasState[]; currentIndex: number } | null): void;
 }
 
 /**

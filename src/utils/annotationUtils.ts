@@ -212,6 +212,43 @@ export class HistoryManager {
   size(): number {
     return this.history.length;
   }
+
+  /**
+   * Exports the entire history stack for persistence across remounts
+   * @returns History data with current index
+   */
+  export(): { history: CanvasState[]; currentIndex: number } {
+    return {
+      history: this.history.map(entry => entry.json),
+      currentIndex: this.currentIndex
+    };
+  }
+
+  /**
+   * Imports and restores the entire history stack
+   * @param data - History data with current index
+   */
+  import(data: { history: CanvasState[]; currentIndex: number } | null): void {
+    if (!data || !Array.isArray(data.history)) {
+      console.warn('[HistoryManager] Invalid history data for import');
+      return;
+    }
+
+    // Clear existing history
+    this.history = [];
+    this.currentIndex = -1;
+
+    // Restore history entries
+    data.history.forEach(state => {
+      this.history.push({
+        json: state,
+        timestamp: Date.now()
+      });
+    });
+
+    // Restore current index (bounded to valid range)
+    this.currentIndex = Math.max(0, Math.min(data.currentIndex, this.history.length - 1));
+  }
 }
 
 /**

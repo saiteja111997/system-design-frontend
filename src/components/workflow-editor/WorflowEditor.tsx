@@ -37,6 +37,11 @@ const WorkflowEditorContent: React.FC = () => {
   >(null);
   const [annotationSnapshot, setAnnotationSnapshot] =
     useState<CanvasState | null>(null);
+  // Store entire history stack for proper undo/redo across transitions
+  const [annotationHistory, setAnnotationHistory] = useState<{
+    history: CanvasState[];
+    currentIndex: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
@@ -44,8 +49,8 @@ const WorkflowEditorContent: React.FC = () => {
 
   /**
    * Handle annotation persistence across fullscreen transitions
-   * Strategy: Save snapshot BEFORE fullscreen state changes, then restore AFTER
-   * canvas is fully mounted and ready in the new state
+   * Strategy: Save BOTH snapshot AND history BEFORE fullscreen state changes,
+   * then restore AFTER canvas is fully mounted and ready in the new state
    */
   useEffect(() => {
     // Only run when fullscreen state actually changes
@@ -54,42 +59,78 @@ const WorkflowEditorContent: React.FC = () => {
     if (!currentRef) return;
 
     if (isFullscreen) {
-      // Entering fullscreen: Restore the previously saved snapshot
+      // Entering fullscreen: Restore the previously saved snapshot AND history
       // Use setTimeout to ensure canvas is fully mounted and ready
       const timer = setTimeout(() => {
-        if (annotationSnapshot && annotationLayerRef.current) {
-          annotationLayerRef.current
-            .load(annotationSnapshot)
-            .then(() => {
-              // Always force redraw after restore
-              const canvas = annotationLayerRef.current?.getCanvas();
-              canvas?.renderAll();
-            })
-            .catch((error) => {
+        if (annotationLayerRef.current) {
+          // First try to restore the history stack
+          if (annotationHistory) {
+            try {
+              annotationLayerRef.current.importHistory(annotationHistory);
+            } catch (error) {
               console.error(
-                "[WorkflowEditor] Failed to restore annotations on fullscreen enter:",
+                "[WorkflowEditor] Failed to restore history on fullscreen enter:",
                 error
               );
-            });
+              // Fallback: if history import fails, try loading the snapshot
+              if (annotationSnapshot) {
+                annotationLayerRef.current
+                  .load(annotationSnapshot)
+                  .then(() => {
+                    // Always force redraw after restore
+                    const canvas = annotationLayerRef.current?.getCanvas();
+                    canvas?.renderAll();
+                  })
+                  .catch((fallbackError) => {
+                    console.error(
+                      "[WorkflowEditor] Failed to restore annotations on fullscreen enter (fallback):",
+                      fallbackError
+                    );
+                  });
+              }
+            }
+          } else if (annotationSnapshot) {
+            // Fallback: if no history, just load the snapshot
+            annotationLayerRef.current
+              .load(annotationSnapshot)
+              .then(() => {
+                // Always force redraw after restore
+                const canvas = annotationLayerRef.current?.getCanvas();
+                canvas?.renderAll();
+              })
+              .catch((error) => {
+                console.error(
+                  "[WorkflowEditor] Failed to restore annotations on fullscreen enter:",
+                  error
+                );
+              });
+          }
         }
       }, 150); // Small delay to ensure canvas initialization completes
 
       return () => clearTimeout(timer);
     }
     // Note: Exiting fullscreen is handled by the save function below
-  }, [isFullscreen, annotationSnapshot]);
+  }, [isFullscreen, annotationSnapshot, annotationHistory]);
 
   /**
    * Save annotation state before any fullscreen transition
    * This runs synchronously before the fullscreen change propagates
    */
   const handleFullscreenToggle = useCallback(() => {
-    // Save current state immediately before transition
+    // Save current state AND history immediately before transition
     if (annotationLayerRef.current) {
       try {
+        // Save current canvas snapshot (for fallback)
         const snapshot = annotationLayerRef.current.snapshot();
         if (snapshot) {
           setAnnotationSnapshot(snapshot);
+        }
+
+        // Save entire history stack (for undo/redo preservation)
+        const history = annotationLayerRef.current.exportHistory();
+        if (history) {
+          setAnnotationHistory(history);
         }
       } catch (error) {
         console.error(

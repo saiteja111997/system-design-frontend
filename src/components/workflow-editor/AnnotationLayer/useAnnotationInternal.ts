@@ -131,7 +131,29 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         undoRedoLockRef.current = false;
       }
     },
-    getCanvas: () => canvas
+    getCanvas: () => canvas,
+    exportHistory: () => {
+      if (!historyManager) return null;
+      return historyManager.export();
+    },
+    importHistory: (data) => {
+      if (!historyManager || !data) return;
+      historyManager.import(data);
+      
+      // Restore canvas to current state in history
+      if (data.currentIndex >= 0 && data.currentIndex < data.history.length) {
+        const currentState = data.history[data.currentIndex];
+        if (canvas && currentState) {
+          restoreCanvas(canvas as AnnotationCanvas, currentState)
+            .then(() => {
+              deferredRender(canvas as AnnotationCanvas);
+            })
+            .catch((error) => {
+              console.error('[AnnotationLayer] Failed to restore canvas after history import:', error);
+            });
+        }
+      }
+    }
   }), [canvas, historyManager, saveToHistoryImmediate]);
 
   useImperativeHandle(ref, () => handlers, [handlers]);
