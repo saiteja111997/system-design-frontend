@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import type { CanvasState } from "../../utils/annotationUtils";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -42,24 +42,66 @@ const WorkflowEditorContent: React.FC = () => {
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
     useFullscreenContext();
 
-  // Handle annotation persistence across fullscreen transitions
+  /**
+   * Handle annotation persistence across fullscreen transitions
+   * Strategy: Save snapshot BEFORE fullscreen state changes, then restore AFTER
+   * canvas is fully mounted and ready in the new state
+   */
   useEffect(() => {
-    if (!isFullscreen && annotationLayerRef.current) {
-      // Exiting fullscreen: save the current annotation state
-      const snapshot = annotationLayerRef.current.snapshot();
-      if (snapshot) {
-        setAnnotationSnapshot(snapshot);
-      }
-    } else if (
-      isFullscreen &&
-      annotationLayerRef.current &&
-      annotationSnapshot
-    ) {
-      // Entering fullscreen: load the saved annotation state (only if snapshot exists)
-      annotationLayerRef.current.load(annotationSnapshot);
+    // Only run when fullscreen state actually changes
+    const currentRef = annotationLayerRef.current;
+
+    if (!currentRef) return;
+
+    if (isFullscreen) {
+      // Entering fullscreen: Restore the previously saved snapshot
+      // Use setTimeout to ensure canvas is fully mounted and ready
+      const timer = setTimeout(() => {
+        if (annotationSnapshot && annotationLayerRef.current) {
+          annotationLayerRef.current
+            .load(annotationSnapshot)
+            .then(() => {
+              // Always force redraw after restore
+              const canvas = annotationLayerRef.current?.getCanvas();
+              canvas?.renderAll();
+            })
+            .catch((error) => {
+              console.error(
+                "[WorkflowEditor] Failed to restore annotations on fullscreen enter:",
+                error
+              );
+            });
+        }
+      }, 150); // Small delay to ensure canvas initialization completes
+
+      return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFullscreen]); // Only depend on isFullscreen to avoid infinite loop when setting annotationSnapshot
+    // Note: Exiting fullscreen is handled by the save function below
+  }, [isFullscreen, annotationSnapshot]);
+
+  /**
+   * Save annotation state before any fullscreen transition
+   * This runs synchronously before the fullscreen change propagates
+   */
+  const handleFullscreenToggle = useCallback(() => {
+    // Save current state immediately before transition
+    if (annotationLayerRef.current) {
+      try {
+        const snapshot = annotationLayerRef.current.snapshot();
+        if (snapshot) {
+          setAnnotationSnapshot(snapshot);
+        }
+      } catch (error) {
+        console.error(
+          "[WorkflowEditor] Failed to save annotations before fullscreen toggle:",
+          error
+        );
+      }
+    }
+
+    // Proceed with fullscreen toggle
+    toggleFullscreen();
+  }, [toggleFullscreen]);
 
   // Annotation state
   const [activeTool, setActiveTool] = useState<Tool>("select");
@@ -70,7 +112,7 @@ const WorkflowEditorContent: React.FC = () => {
   const canvasControls = useCanvasControlsContext();
   const dockHandlers = createDockItemHandlers(
     canvasControls,
-    { toggleFullscreen },
+    { toggleFullscreen: handleFullscreenToggle }, // Use our wrapped version that saves state
     {
       setActiveTool: (tool: Tool) => {
         setActiveTool(tool);
@@ -78,6 +120,12 @@ const WorkflowEditorContent: React.FC = () => {
         if (tool !== "select") {
           setIsAnnotationLayerVisible(true);
         }
+      },
+      undo: () => {
+        annotationLayerRef.current?.undo();
+      },
+      redo: () => {
+        annotationLayerRef.current?.redo();
       },
     }
   );

@@ -10,6 +10,7 @@ import {
   calculateResizeScale,
   setCanvasSize
 } from '../../../utils/annotationUtils';
+import type { FabricCanvas as UtilsFabricCanvas } from '../../../utils/annotationUtils';
 import { 
   initializeFabricCanvas, 
   scaleCanvasObjects,
@@ -87,30 +88,78 @@ export function useDrawingState() {
 
 /**
  * Hook for managing history and persistence
+ * Returns a stable debounced save function that can be flushed on demand
  */
-export function useHistoryManager() {
+export function useHistoryManager(canvas: FabricCanvas | null) {
   const historyManagerRef = useRef<HistoryManager>(new HistoryManager(50));
+  
+  // Flag to track if we need to flush pending saves
+  const hasPendingSaveRef = useRef(false);
 
-  const saveToHistory = useMemo(
-    () => debounce(() => {
-      // This will be set by the consuming component
-    }, 200),
-    []
-  );
+  /**
+   * Create a stable, memoized save function that properly captures canvas state
+   * This function is debounced to avoid excessive history snapshots during rapid changes
+   */
+  const saveToHistory = useCallback(() => {
+    if (!canvas) return;
+    
+    try {
+      const state = serializeCanvas(canvas as UtilsFabricCanvas);
+      historyManagerRef.current.push(state);
+    } catch (error) {
+      console.error('[AnnotationLayer] Failed to save history:', error);
+    } finally {
+      hasPendingSaveRef.current = false;
+    }
+  }, [canvas]);
 
-  const createSaveToHistory = useCallback((canvas: FabricCanvas | null) => {
+  /**
+   * Create debounced version for high-frequency operations (drawing, dragging)
+   * Separate from immediate save for explicit operations (clear, undo/redo)
+   */
+  const debouncedSave = useMemo(() => {
     return debounce(() => {
-      if (canvas) {
-        const state = serializeCanvas(canvas as unknown as import('../../../utils/annotationUtils').FabricCanvas);
-        historyManagerRef.current.push(state);
-      }
+      saveToHistory();
     }, 200);
-  }, []);
+  }, [saveToHistory]);
+
+  /**
+   * Wrapper that tracks pending saves
+   */
+  const saveToHistoryDebounced = useCallback(() => {
+    hasPendingSaveRef.current = true;
+    debouncedSave();
+  }, [debouncedSave]);
+
+  /**
+   * Immediate save without debounce for explicit user actions
+   */
+  const saveToHistoryImmediate = useCallback(() => {
+    // Reset pending flag and save immediately
+    hasPendingSaveRef.current = false;
+    saveToHistory();
+  }, [saveToHistory]);
+
+  /**
+   * Cleanup: flush pending saves on unmount to prevent data loss
+   */
+  useEffect(() => {
+    return () => {
+      // If there's a pending save, execute it immediately
+      if (hasPendingSaveRef.current) {
+        try {
+          saveToHistory();
+        } catch (error) {
+          console.warn('[AnnotationLayer] Failed to flush history on cleanup:', error);
+        }
+      }
+    };
+  }, [saveToHistory]);
 
   return {
     historyManagerRef,
-    saveToHistory,
-    createSaveToHistory
+    saveToHistory: saveToHistoryDebounced,
+    saveToHistoryImmediate
   };
 }
 

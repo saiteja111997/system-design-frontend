@@ -103,8 +103,14 @@ export function restoreCanvas(fabricCanvas: FabricCanvas, serializedData: Canvas
         });
       }
       
+      // CRITICAL: Force immediate render after load completes
       fabricCanvas.renderAll();
-      resolve();
+      
+      // Use requestAnimationFrame to ensure render is painted before resolving
+      requestAnimationFrame(() => {
+        fabricCanvas.renderAll();
+        resolve();
+      });
     });
   });
 }

@@ -7,6 +7,8 @@ export interface DockItemHandlers {
   handleResetZoom: () => void;
   handleFullscreen: () => void;
   handleAnnotationTool: (tool: Tool) => void;
+  handleUndo: () => void;
+  handleRedo: () => void;
 }
 
 export const createDockItemHandlers = (
@@ -16,6 +18,8 @@ export const createDockItemHandlers = (
   },
   annotationHandlers?: {
     setActiveTool: (tool: Tool) => void;
+    undo?: () => void;
+    redo?: () => void;
   }
 ): DockItemHandlers => {
   const { zoomIn, zoomOut, resetZoom } = canvasControls;
@@ -26,6 +30,8 @@ export const createDockItemHandlers = (
     handleResetZoom: resetZoom,
     handleFullscreen: fullscreenHandlers?.toggleFullscreen || (() => {}),
     handleAnnotationTool: annotationHandlers?.setActiveTool || (() => {}),
+    handleUndo: annotationHandlers?.undo || (() => {}),
+    handleRedo: annotationHandlers?.redo || (() => {}),
   };
 };
 
@@ -39,6 +45,12 @@ export const handleDockItemClick = (
       break;
     case "zoom-out":
       handlers.handleZoomOut();
+      break;
+    case "undo":
+      handlers.handleUndo();
+      break;
+    case "redo":
+      handlers.handleRedo();
       break;
     case "fullscreen":
       handlers.handleFullscreen();

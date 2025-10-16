@@ -11,6 +11,8 @@ import {
   Maximize,
   ZoomIn,
   ZoomOut,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 
 export const canvasDockItems = [
@@ -29,18 +31,36 @@ export const canvasDockItems = [
     component: <ZoomOut size={14} className="text-slate-700 dark:text-white" />,
   },
   {
+    id: "undo",
+    name: "Undo",
+    tooltip: "Undo (Ctrl+Z)",
+    route: "",
+    component: <Undo2 size={14} className="text-slate-700 dark:text-white" />,
+  },
+  {
+    id: "redo",
+    name: "Redo",
+    tooltip: "Redo (Ctrl+Shift+Z)",
+    route: "",
+    component: <Redo2 size={14} className="text-slate-700 dark:text-white" />,
+  },
+  {
     id: "ai-diagram",
     name: "AIDiagram",
     tooltip: "AI Diagram",
     route: "",
-    component: <Sparkles size={14} className="text-slate-700 dark:text-white" />,
+    component: (
+      <Sparkles size={14} className="text-slate-700 dark:text-white" />
+    ),
   },
   {
     id: "selection-tool",
     name: "SelectionTool",
     tooltip: "Selection Tool",
     route: "",
-    component: <MousePointer size={14} className="text-slate-700 dark:text-white" />,
+    component: (
+      <MousePointer size={14} className="text-slate-700 dark:text-white" />
+    ),
   },
   {
     id: "rectangle-tool",
@@ -61,7 +81,9 @@ export const canvasDockItems = [
     name: "Arrow",
     tooltip: "Arrow",
     route: "",
-    component: <ArrowUpRight size={14} className="text-slate-700 dark:text-white" />,
+    component: (
+      <ArrowUpRight size={14} className="text-slate-700 dark:text-white" />
+    ),
   },
   {
     id: "line",
@@ -89,13 +111,17 @@ export const canvasDockItems = [
     name: "Comment",
     tooltip: "Comment",
     route: "",
-    component: <MessageSquare size={14} className="text-slate-700 dark:text-white" />,
+    component: (
+      <MessageSquare size={14} className="text-slate-700 dark:text-white" />
+    ),
   },
   {
     id: "fullscreen",
     name: "Fullscreen",
     tooltip: "Fullscreen",
     route: "",
-    component: <Maximize size={14} className="text-slate-700 dark:text-white" />,
+    component: (
+      <Maximize size={14} className="text-slate-700 dark:text-white" />
+    ),
   },
 ];

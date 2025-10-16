@@ -161,9 +161,12 @@ export interface DrawingToolConfig {
  * History manager interface
  */
 export interface HistoryManager {
-  saveState: () => void;
-  undo: () => void;
-  redo: () => void;
+  push: (state: CanvasState) => void;
+  undo: () => CanvasState | null;
+  redo: () => CanvasState | null;
   canUndo: () => boolean;
   canRedo: () => boolean;
+  suppressNext: () => void;
+  clear: () => void;
+  size: () => number;
 }

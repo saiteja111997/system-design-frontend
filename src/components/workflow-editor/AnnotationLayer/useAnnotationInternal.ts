@@ -17,11 +17,12 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
 
   const { canvasRef, fabricCanvasRef, containerRef, initializeCanvas, cleanup } = useCanvasSetup();
   const { drawingState, setDrawingState } = useDrawingState();
-  const { historyManagerRef, createSaveToHistory } = useHistoryManager();
-
+  
   const canvas = fabricCanvasRef.current;
+  
+  // Pass canvas to history manager so it can create stable save functions
+  const { historyManagerRef, saveToHistory, saveToHistoryImmediate } = useHistoryManager(canvas);
   const historyManager = historyManagerRef.current;
-  const saveToHistory = createSaveToHistory(canvas);
 
   // Imperative API
   const handlers = useMemo<AnnotationLayerHandle>(() => ({
@@ -30,6 +31,11 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       if (canvas && json) {
         try {
           await restoreCanvas(canvas as AnnotationCanvas, json);
+          canvas.renderAll(); // Ensure redraw after restore
+          // Small delay to ensure render is visible
+          setTimeout(() => canvas.renderAll(), 10);
+          // Save the loaded state as new starting point (this creates initial history)
+          saveToHistoryImmediate();
         } catch (error) {
           console.error('[AnnotationLayer] Failed to load canvas state:', error);
         }
@@ -51,25 +57,50 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         return ''; 
       } 
     },
-    clear: () => { if (!canvas) return; canvas.clear(); canvas.renderAll(); saveToHistory(); },
-    undo: () => { 
+    clear: () => { 
+      if (!canvas) return; 
+      canvas.clear(); 
+      canvas.renderAll(); 
+      saveToHistoryImmediate(); // Immediate save for explicit user action
+    },
+    undo: async () => { 
+      if (!canvas || !historyManager) return;
+      
       const state = historyManager.undo(); 
-      if (state && canvas) {
-        restoreCanvas(canvas as AnnotationCanvas, state).catch((error) => 
-          console.error('[AnnotationLayer] Failed to undo:', error)
-        );
+      if (state) {
+        try {
+          // Suppress AFTER getting state, so restore won't add new history
+          historyManager.suppressNext();
+          await restoreCanvas(canvas as AnnotationCanvas, state);
+          // Force immediate redraw after restore completes
+          canvas.renderAll();
+          // Small delay to ensure render is visible
+          setTimeout(() => canvas.renderAll(), 10);
+        } catch (error) {
+          console.error('[AnnotationLayer] Failed to undo:', error);
+        }
       }
     },
-    redo: () => { 
+    redo: async () => { 
+      if (!canvas || !historyManager) return;
+      
       const state = historyManager.redo(); 
-      if (state && canvas) {
-        restoreCanvas(canvas as AnnotationCanvas, state).catch((error) => 
-          console.error('[AnnotationLayer] Failed to redo:', error)
-        );
+      if (state) {
+        try {
+          // Suppress AFTER getting state, so restore won't add new history
+          historyManager.suppressNext();
+          await restoreCanvas(canvas as AnnotationCanvas, state);
+          // Force immediate redraw after restore completes
+          canvas.renderAll();
+          // Small delay to ensure render is visible
+          setTimeout(() => canvas.renderAll(), 10);
+        } catch (error) {
+          console.error('[AnnotationLayer] Failed to redo:', error);
+        }
       }
     },
     getCanvas: () => canvas
-  }), [canvas, historyManager, saveToHistory]);
+  }), [canvas, historyManager, saveToHistoryImmediate]);
 
   useImperativeHandle(ref, () => handlers, [handlers]);
 
@@ -78,14 +109,23 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   const handleMouseMove = useCallback((e?: FabricEvent) => { if (!canvas) return; createMouseMoveHandler(canvas, activeTool, drawingState)(e); }, [canvas, activeTool, drawingState]);
   const handleMouseUp = useCallback(() => { createMouseUpHandler(drawingState, setDrawingState, saveToHistory, onFinish)(); }, [drawingState, setDrawingState, saveToHistory, onFinish]);
 
-  // Object add/modify history
+  // Object modify history - only save on modifications, not on initial add
+  // Initial add is handled by mouseUp handler to avoid duplicate saves
   useEffect(() => {
     if (!canvas) return;
     const relevant = (t?: string) => !!t && ['rect','circle','path'].includes(t);
-  const added = (e?: import('./types').FabricEvent) => { if (relevant(e?.target?.type)) saveToHistory(); };
-  const modified = (e?: import('./types').FabricEvent) => { if (relevant(e?.target?.type)) saveToHistory(); };
-    canvas.on('object:added', added); canvas.on('object:modified', modified);
-    return () => { canvas.off('object:added', added); canvas.off('object:modified', modified); };
+    
+    // Only track modifications (move, resize, rotate) - not initial creation
+    const modified = (e?: import('./types').FabricEvent) => { 
+      if (relevant(e?.target?.type)) {
+        saveToHistory(); 
+      }
+    };
+    
+    canvas.on('object:modified', modified);
+    return () => { 
+      canvas.off('object:modified', modified); 
+    };
   }, [canvas, saveToHistory]);
 
   // Keyboard
@@ -112,8 +152,12 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     };
   }, [canvas, initError, activeTool, handleMouseDown, handleMouseMove, handleMouseUp]);
 
-  // Load initial
-  useEffect(() => { if(canvas && initialJSON && !initError){ handlers.load(initialJSON).catch(console.error);} }, [canvas, initialJSON, initError, handlers]);
+  // Load initial state if provided
+  useEffect(() => { 
+    if (canvas && initialJSON && !initError && isReady) {
+      handlers.load(initialJSON).catch(console.error);
+    }
+  }, [canvas, initialJSON, initError, isReady, handlers]);
 
   // React to theme changes (Tailwind dark class or system preference)
   useEffect(() => {
@@ -146,8 +190,18 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     };
   }, [canvas]);
 
-  // Initial history snapshot
-  useEffect(() => { if(canvas && isReady && !initError){ try { saveToHistory(); } catch {} } }, [canvas, isReady, initError, saveToHistory]);
+  // Save initial history snapshot AFTER canvas is ready and initial state loaded
+  // This ensures we capture the correct starting state
+  useEffect(() => { 
+    if (!canvas || !isReady || initError) return;
+    
+    // Use a small delay to ensure initialJSON load has completed
+    const timer = setTimeout(() => {
+      saveToHistoryImmediate();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [canvas, isReady, initError, saveToHistoryImmediate]);
 
   const retry = useCallback(() => { setInitError(null); try { initializeCanvas(); setIsReady(true);} catch(e){ setInitError(e instanceof Error ? e.message : 'Retry failed'); } }, [initializeCanvas]);
 

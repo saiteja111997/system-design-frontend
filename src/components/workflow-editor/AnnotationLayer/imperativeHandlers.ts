@@ -69,21 +69,45 @@ export function createImperativeHandlers(
       if (!canvas) return;
       canvas.clear();
       canvas.renderAll();
-      historyManager?.saveState();
+      // Push state after clear (this is a new starting point)
+      if (historyManager && canvas) {
+        const state = serializeCanvas(canvas);
+        historyManager.push(state);
+      }
     },
 
     /**
      * Undo the last action
      */
-    undo: (): void => {
-      historyManager?.undo();
+    undo: async (): Promise<void> => {
+      if (!canvas || !historyManager) return;
+      
+      const state = historyManager.undo();
+      if (state !== null && state !== undefined) {
+        // Suppress AFTER getting state, so restore won't add new history
+        historyManager.suppressNext();
+        await restoreCanvas(canvas, state);
+        canvas.renderAll();
+        // Small delay to ensure render is visible
+        setTimeout(() => canvas.renderAll(), 10);
+      }
     },
 
     /**
      * Redo the last undone action
      */
-    redo: (): void => {
-      historyManager?.redo();
+    redo: async (): Promise<void> => {
+      if (!canvas || !historyManager) return;
+      
+      const state = historyManager.redo();
+      if (state !== null && state !== undefined) {
+        // Suppress AFTER getting state, so restore won't add new history
+        historyManager.suppressNext();
+        await restoreCanvas(canvas, state);
+        canvas.renderAll();
+        // Small delay to ensure render is visible
+        setTimeout(() => canvas.renderAll(), 10);
+      }
     },
 
     /**

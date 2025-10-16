@@ -50,6 +50,42 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       onMouseUp?.();
     };
 
+    // Attach native touch listeners with passive: false for preventDefault
+
+    React.useEffect(() => {
+      const canvasDiv = ref && typeof ref !== "function" ? ref.current : null;
+      if (!canvasDiv) return;
+      // Wrap native event to call React handler
+      // Fabric.js and React expect slightly different event types; we only need touches and preventDefault
+      // This wrapper passes the native event to the React handler, which only uses touches and preventDefault
+      const nativeTouchStart = (e: TouchEvent) => {
+        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
+        handleTouchStart(e);
+      };
+      const nativeTouchMove = (e: TouchEvent) => {
+        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
+        handleTouchMove(e);
+      };
+      const nativeTouchEnd = (e: TouchEvent) => {
+        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
+        handleTouchEnd(e);
+      };
+      canvasDiv.addEventListener("touchstart", nativeTouchStart, {
+        passive: false,
+      });
+      canvasDiv.addEventListener("touchmove", nativeTouchMove, {
+        passive: false,
+      });
+      canvasDiv.addEventListener("touchend", nativeTouchEnd, {
+        passive: false,
+      });
+      return () => {
+        canvasDiv.removeEventListener("touchstart", nativeTouchStart);
+        canvasDiv.removeEventListener("touchmove", nativeTouchMove);
+        canvasDiv.removeEventListener("touchend", nativeTouchEnd);
+      };
+    }, [ref, handleTouchStart, handleTouchMove, handleTouchEnd]);
+
     return (
       <div
         ref={ref}
@@ -58,9 +94,6 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMoveCanvas}
         onMouseUp={handleMouseUpCanvas}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         onWheel={handleWheel}
         style={globalAnimationStyle}
       >
