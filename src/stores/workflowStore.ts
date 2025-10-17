@@ -270,6 +270,11 @@ const initialState: WorkflowState = {
   tempLine: null,
   requestsPerSecond: 1,
   runCode: false,
+  canvasTransform: {
+    scale: 1,
+    translateX: 0,
+    translateY: 0,
+  },
 };
 
 // Create the Zustand store with Immer and localStorage persistence
@@ -397,6 +402,19 @@ export const useWorkflowStore = create<WorkflowStore>()(
         });
       },
 
+      // Canvas actions
+      setCanvasTransform: (transform) => {
+        set((state) => {
+          state.canvasTransform = transform;
+        });
+      },
+
+      updateCanvasTransform: (updates) => {
+        set((state) => {
+          Object.assign(state.canvasTransform, updates);
+        });
+      },
+
       // Bulk operations
       setNodes: (nodes) => {
         set((state) => {
@@ -428,21 +446,25 @@ export const useWorkflowStore = create<WorkflowStore>()(
       name: "workflow-editor-storage",
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      // Only persist essential data, not UI state
+      // Only persist essential data, not temporary UI state
       partialize: (state) => ({
         nodes: state.nodes,
         edges: state.edges,
         requestsPerSecond: state.requestsPerSecond,
+        runCode: state.runCode, // Persist run code as user preference
+        canvasTransform: state.canvasTransform, // Persist zoom and pan position
+        // Note: dragOffset is for individual node dragging (temporary), not persisted
       }),
-      // Reset UI state on rehydration
+      // Reset temporary UI state on rehydration (keep persistent preferences)
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Reset temporary UI state
           state.selectedNode = null;
           state.draggingNode = null;
           state.dragOffset = { x: 0, y: 0 };
           state.connecting = null;
           state.tempLine = null;
-          state.runCode = false;
+          // Keep runCode and canvasTransform as they are persistent user preferences
         }
       },
     }

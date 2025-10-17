@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
 import { WorkflowHeader, WorkflowCanvas, WorkflowFooter } from ".";
 import { useWorkflowStore } from "@/hooks/useWorkflowStore";
-import { useOptimizedWorkflowInteractions } from "@/hooks/useOptimizedWorkflowInteractions";
+import { useWorkflowInteractions } from "@/hooks/useWorkflowInteractions";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { CanvasControlsProvider } from "@/contexts/CanvasControlsContext";
 import {
@@ -200,7 +200,7 @@ const WorkflowEditorContent: React.FC = () => {
     handleStartConnection,
     handleEndConnection,
     handleDeleteNode,
-  } = useOptimizedWorkflowInteractions({
+  } = useWorkflowInteractions({
     canvasRef,
   });
 

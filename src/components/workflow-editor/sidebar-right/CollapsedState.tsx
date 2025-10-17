@@ -2,20 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import DockNavigation from "../DockNavigation";
 import { sidebarDockItems } from "@/data/sidebarDockItems";
-import {
-  calculateServerLoad,
-  getLoadColor,
-  getRPSColor,
-} from "@/utils/serverMetrics";
 import { CollapsedStateProps } from "@/types/workflow-editor/sidebar-right";
 
-const CollapsedState: React.FC<CollapsedStateProps> = ({
-  requestsPerSecond,
-  onTabChange,
-}) => {
-  const serverLoad = calculateServerLoad(requestsPerSecond);
-  const rpsColorClass = getRPSColor(requestsPerSecond);
-
+const CollapsedState: React.FC<CollapsedStateProps> = ({ onTabChange }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -29,7 +18,7 @@ const CollapsedState: React.FC<CollapsedStateProps> = ({
           tooltipPosition="left"
           collapsible={false}
           items={sidebarDockItems}
-          onItemClick={(itemId: string, _index: number) => onTabChange(itemId)}
+          onItemClick={(itemId: string) => onTabChange(itemId)}
           activeItem={null} // No active item when collapsed
         />
       </div>

@@ -1,36 +1,43 @@
-import { useCallback, useEffect } from "react";
+/**
+ * Optimized workflow interactions hook using Zustand selectors
+ * This provides better performance by subscribing only to relevant state changes
+ */
+
+import { useCallback } from "react";
+import { useWorkflowStore } from "@/hooks/useWorkflowStore";
 import { UseWorkflowInteractionsProps } from "@/types/workflow-editor/components";
 
 export const useWorkflowInteractions = ({
-  nodes,
-  draggingNode,
-  connecting,
-  dragOffset,
   canvasRef,
-  setSelectedNode,
-  setDraggingNode,
-  setDragOffset,
-  setConnecting,
-  setTempLine,
-  updateNodePosition,
-  addEdge,
-  deleteNode,
-}: UseWorkflowInteractionsProps) => {
+}: Pick<UseWorkflowInteractionsProps, "canvasRef">) => {
+  // Use direct Zustand selectors
+  const nodes = useWorkflowStore((state) => state.nodes);
+  const draggingNode = useWorkflowStore((state) => state.draggingNode);
+  const dragOffset = useWorkflowStore((state) => state.dragOffset);
+  const connecting = useWorkflowStore((state) => state.connecting);
+
+  // Use direct action selectors
+  const setSelectedNode = useWorkflowStore((state) => state.setSelectedNode);
+  const setDraggingNode = useWorkflowStore((state) => state.setDraggingNode);
+  const setDragOffset = useWorkflowStore((state) => state.setDragOffset);
+  const setConnecting = useWorkflowStore((state) => state.setConnecting);
+  const setTempLine = useWorkflowStore((state) => state.setTempLine);
+  const updateNodePosition = useWorkflowStore(
+    (state) => state.updateNodePosition
+  );
+  const addEdge = useWorkflowStore((state) => state.addEdge);
+  const deleteNode = useWorkflowStore((state) => state.deleteNode);
+
   // Helper function to convert viewport coordinates to canvas coordinates
   const getCanvasCoordinates = useCallback(
     (clientX: number, clientY: number) => {
       if (!canvasRef.current) return { x: clientX, y: clientY };
 
       const rect = canvasRef.current.getBoundingClientRect();
-
-      // Get the raw canvas coordinates
       const rawX = clientX - rect.left;
       const rawY = clientY - rect.top;
 
-      return {
-        x: rawX,
-        y: rawY,
-      };
+      return { x: rawX, y: rawY };
     },
     [canvasRef]
   );
@@ -38,8 +45,8 @@ export const useWorkflowInteractions = ({
   const handleNodeMouseDown = useCallback(
     (e: React.MouseEvent, nodeId: number) => {
       if (e.button === 0) {
-        e.stopPropagation(); // Prevent canvas panning when dragging nodes
-        e.preventDefault(); // Prevent text selection
+        e.stopPropagation();
+        e.preventDefault();
 
         const node = nodes.find((n) => n.id === nodeId);
         if (!node) return;
@@ -65,7 +72,6 @@ export const useWorkflowInteractions = ({
         updateNodePosition(draggingNode, newX, newY);
       }
 
-      // Update temporary connection line while connecting
       if (connecting !== null) {
         const sourceNode = nodes.find((n) => n.id === connecting);
         if (sourceNode) {
@@ -99,11 +105,9 @@ export const useWorkflowInteractions = ({
 
   const handleNodeClick = useCallback(
     (nodeId: number, currentSelectedNode: number | null) => {
-      // Simple toggle: if clicking the same node that's already selected, deselect it
       if (currentSelectedNode === nodeId) {
         setSelectedNode(null);
       } else {
-        // Otherwise, select the clicked node
         setSelectedNode(nodeId);
       }
     },
@@ -145,24 +149,6 @@ export const useWorkflowInteractions = ({
     },
     [deleteNode]
   );
-
-  // Global mouse up listener to handle mouse release outside the canvas area
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      // Only call handleMouseUp if we're actually dragging something
-      if (draggingNode !== null || connecting !== null) {
-        handleMouseUp();
-      }
-    };
-
-    // Add global event listener
-    document.addEventListener("mouseup", handleGlobalMouseUp);
-
-    // Cleanup on unmount
-    return () => {
-      document.removeEventListener("mouseup", handleGlobalMouseUp);
-    };
-  }, [handleMouseUp, draggingNode, connecting]);
 
   return {
     handleNodeMouseDown,

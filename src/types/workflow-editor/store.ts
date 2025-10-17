@@ -3,6 +3,7 @@
  */
 
 import { Node, Edge, TempLine, DragOffset } from "./workflow";
+import { CanvasTransform } from "../canvas";
 
 // Store state interface
 export interface WorkflowState {
@@ -20,6 +21,9 @@ export interface WorkflowState {
   // Simulation state
   requestsPerSecond: number;
   runCode: boolean;
+
+  // Canvas state
+  canvasTransform: CanvasTransform;
 }
 
 // Store actions interface
@@ -49,6 +53,10 @@ export interface WorkflowActions {
   // Simulation setters
   setRequestsPerSecond: (value: number) => void;
   setRunCode: (value: boolean) => void;
+
+  // Canvas actions
+  setCanvasTransform: (transform: CanvasTransform) => void;
+  updateCanvasTransform: (updates: Partial<CanvasTransform>) => void;
 
   // Bulk operations
   setNodes: (nodes: Node[]) => void;

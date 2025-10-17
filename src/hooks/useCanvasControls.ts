@@ -1,31 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+/**
+ * Zustand-based canvas controls that persist zoom and pan state
+ */
 
-export interface CanvasTransform {
-  scale: number;
-  translateX: number;
-  translateY: number;
-}
+import { useCallback, useRef, useEffect, useState } from "react";
+import { useWorkflowStore } from "@/stores/workflowStore";
+import { CanvasTransform, CanvasControlsHook } from "@/types/canvas";
 
-export interface CanvasControlsHook {
-  transform: CanvasTransform;
-  isDragging: boolean;
-  zoomIn: () => void;
-  zoomOut: () => void;
-  resetZoom: () => void;
-  setZoom: (scale: number) => void;
-  handlePanStart: (event: React.MouseEvent) => void;
-  handlePanMove: (event: React.MouseEvent) => void;
-  handlePanEnd: () => void;
-  handleTouchStart: (event: React.TouchEvent) => void;
-  handleTouchMove: (event: React.TouchEvent) => void;
-  handleTouchEnd: (event: React.TouchEvent) => void;
-  handleWheel: (event: React.WheelEvent) => void;
-  getTransformStyle: () => React.CSSProperties;
-}
-
-const ZOOM_STEP = 0.1;
 export const MIN_ZOOM = 0.1;
 export const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.1;
 
 // Helper function to get distance between two touch points
 const getTouchDistance = (touches: React.TouchList): number => {
@@ -39,12 +22,16 @@ const getTouchDistance = (touches: React.TouchList): number => {
 };
 
 export const useCanvasControls = (): CanvasControlsHook => {
-  const [transform, setTransform] = useState<CanvasTransform>({
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
-  });
+  // Get transform from Zustand store
+  const transform = useWorkflowStore((state) => state.canvasTransform);
+  const setCanvasTransform = useWorkflowStore(
+    (state) => state.setCanvasTransform
+  );
+  const updateCanvasTransform = useWorkflowStore(
+    (state) => state.updateCanvasTransform
+  );
 
+  // Local state for drag interactions
   const [isDragging, setIsDragging] = useState(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
   const dragStartTransform = useRef<CanvasTransform>({
@@ -64,34 +51,32 @@ export const useCanvasControls = (): CanvasControlsHook => {
 
   // Zoom functions
   const zoomIn = useCallback(() => {
-    setTransform((prev) => ({
-      ...prev,
-      scale: Math.min(prev.scale + ZOOM_STEP, MAX_ZOOM),
-    }));
-  }, []);
+    updateCanvasTransform({
+      scale: Math.min(transform.scale + ZOOM_STEP, MAX_ZOOM),
+    });
+  }, [transform.scale, updateCanvasTransform]);
 
   const zoomOut = useCallback(() => {
-    setTransform((prev) => ({
-      ...prev,
-      scale: Math.max(prev.scale - ZOOM_STEP, MIN_ZOOM),
-    }));
-  }, []);
+    updateCanvasTransform({
+      scale: Math.max(transform.scale - ZOOM_STEP, MIN_ZOOM),
+    });
+  }, [transform.scale, updateCanvasTransform]);
 
   const resetZoom = useCallback(() => {
-    setTransform({
+    setCanvasTransform({
       scale: 1,
       translateX: 0,
       translateY: 0,
     });
-  }, []);
+  }, [setCanvasTransform]);
 
-  const setZoom = useCallback((scale: number) => {
-    const constrainedScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-    setTransform((prev) => ({
-      ...prev,
-      scale: constrainedScale,
-    }));
-  }, []);
+  const setZoom = useCallback(
+    (scale: number) => {
+      const constrainedScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
+      updateCanvasTransform({ scale: constrainedScale });
+    },
+    [updateCanvasTransform]
+  );
 
   // Pan functions
   const handlePanStart = useCallback(
@@ -121,13 +106,13 @@ export const useCanvasControls = (): CanvasControlsHook => {
       const deltaX = event.clientX - lastMousePos.current.x;
       const deltaY = event.clientY - lastMousePos.current.y;
 
-      setTransform((prev) => ({
-        ...prev,
+      setCanvasTransform({
+        ...transform,
         translateX: dragStartTransform.current.translateX + deltaX,
         translateY: dragStartTransform.current.translateY + deltaY,
-      }));
+      });
     },
-    [isDragging]
+    [isDragging, transform, setCanvasTransform]
   );
 
   const handlePanEnd = useCallback(() => {
@@ -178,10 +163,7 @@ export const useCanvasControls = (): CanvasControlsHook => {
             Math.min(MAX_ZOOM, scale)
           );
 
-          setTransform((prev) => ({
-            ...prev,
-            scale: constrainedScale,
-          }));
+          updateCanvasTransform({ scale: constrainedScale });
         }
       } else if (event.touches.length === 1 && isDragging) {
         // Single finger pan move
@@ -190,14 +172,14 @@ export const useCanvasControls = (): CanvasControlsHook => {
         const deltaX = touch.clientX - lastMousePos.current.x;
         const deltaY = touch.clientY - lastMousePos.current.y;
 
-        setTransform((prev) => ({
-          ...prev,
+        setCanvasTransform({
+          ...transform,
           translateX: dragStartTransform.current.translateX + deltaX,
           translateY: dragStartTransform.current.translateY + deltaY,
-        }));
+        });
       }
     },
-    [isDragging]
+    [isDragging, transform, setCanvasTransform, updateCanvasTransform]
   );
 
   const handleTouchEnd = useCallback((event: React.TouchEvent) => {
@@ -214,47 +196,41 @@ export const useCanvasControls = (): CanvasControlsHook => {
   }, []);
 
   // Wheel handler for trackpad pinch gestures
-  const handleWheel = useCallback((event: React.WheelEvent) => {
-    // Comprehensive pinch gesture detection:
-    // 1. ctrlKey is set (Windows/Linux standard)
-    // 2. Meta key on Mac (cmd + scroll)
-    // 3. deltaY with ctrlKey (most common)
-    // 4. Small deltaY movements (some trackpads)
-    const isPinchGesture =
-      event.ctrlKey ||
-      event.metaKey ||
-      (Math.abs(event.deltaY) < 50 && event.ctrlKey) ||
-      (Math.abs(event.deltaY) < 10 &&
-        Math.abs(event.deltaX) > Math.abs(event.deltaY));
+  const handleWheel = useCallback(
+    (event: React.WheelEvent) => {
+      // Comprehensive pinch gesture detection
+      const isPinchGesture =
+        event.ctrlKey ||
+        event.metaKey ||
+        (Math.abs(event.deltaY) < 50 && event.ctrlKey) ||
+        (Math.abs(event.deltaY) < 10 &&
+          Math.abs(event.deltaX) > Math.abs(event.deltaY));
 
-    if (isPinchGesture) {
-      // CRITICAL: Prevent ALL default behaviors for pinch gestures
-      event.preventDefault();
-      event.stopPropagation();
+      if (isPinchGesture) {
+        // CRITICAL: Prevent ALL default behaviors for pinch gestures
+        event.preventDefault();
+        event.stopPropagation();
 
-      // Calculate zoom only if within bounds, but always prevent webpage zoom
-      const delta = -event.deltaY;
-      const scaleFactor = Math.abs(delta) > 100 ? ZOOM_STEP * 2 : ZOOM_STEP;
-      const zoomFactor = delta > 0 ? scaleFactor : -scaleFactor;
+        // Calculate zoom only if within bounds, but always prevent webpage zoom
+        const delta = -event.deltaY;
+        const scaleFactor = Math.abs(delta) > 100 ? ZOOM_STEP * 2 : ZOOM_STEP;
+        const zoomFactor = delta > 0 ? scaleFactor : -scaleFactor;
 
-      setTransform((prev) => {
-        const newScale = prev.scale + zoomFactor;
+        const newScale = transform.scale + zoomFactor;
         const constrainedScale = Math.max(
           MIN_ZOOM,
           Math.min(MAX_ZOOM, newScale)
         );
 
-        return {
-          ...prev,
-          scale: constrainedScale,
-        };
-      });
+        updateCanvasTransform({ scale: constrainedScale });
 
-      // Return false to ensure no further event processing
-      return false;
-    }
-    // If it's not a pinch gesture, do nothing (allow normal scrolling)
-  }, []);
+        // Return false to ensure no further event processing
+        return false;
+      }
+      // If it's not a pinch gesture, do nothing (allow normal scrolling)
+    },
+    [transform.scale, updateCanvasTransform]
+  );
 
   // Get CSS transform style
   const getTransformStyle = useCallback(

@@ -1,8 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import {
-  useCanvasControls,
-  CanvasControlsHook,
-} from "@/hooks/useCanvasControls";
+import { useCanvasControls } from "@/hooks/useCanvasControls";
+import { CanvasControlsHook } from "@/types/canvas";
 
 const CanvasControlsContext = createContext<CanvasControlsHook | undefined>(
   undefined
@@ -32,4 +30,4 @@ export const CanvasControlsProvider: React.FC<CanvasControlsProviderProps> = ({
       {children}
     </CanvasControlsContext.Provider>
   );
-}; 
+};
