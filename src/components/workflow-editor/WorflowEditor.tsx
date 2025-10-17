@@ -164,6 +164,9 @@ const WorkflowEditorContent: React.FC = () => {
       redo: () => {
         annotationLayerRef.current?.redo();
       },
+      clearAll: () => {
+        annotationLayerRef.current?.clear();
+      },
     }
   );
 
