@@ -3,7 +3,7 @@
  */
 
 import { setCanvasSize } from '../../../utils/annotationUtils';
-import type { FabricCanvas, FabricObject, CanvasConfig, DrawingToolConfig } from './types';
+import type { FabricCanvas, FabricObject, CanvasConfig, DrawingToolConfig, Tool } from './types';
 
 // Robust fabric import supporting both CJS & ESM shapes and preventing SSR usage
 // We keep it sync because this code only runs on client (component has 'use client')
@@ -19,6 +19,7 @@ type FabricNamespace = {
   Triangle: new (opts: Record<string, unknown>) => FabricObject;
   Group: new (objects: FabricObject[], opts: Record<string, unknown>) => FabricObject;
   IText: new (text: string, opts: Record<string, unknown>) => FabricObject;
+  Textbox: new (text: string, opts: Record<string, unknown>) => FabricObject;
   PencilBrush?: new (canvas: FabricCanvas) => { width: number; color: string };
 };
 
@@ -297,10 +298,12 @@ export function createText(
 ): FabricObject {
   const finalConfig = { ...getDefaultDrawingConfig(), ...config };
   
-  const ITextCtor = ensureFabric('IText');
-  return new ITextCtor('Click to type...', {
+  // Use Textbox instead of IText for resizable text boxes
+  const TextboxCtor = ensureFabric('Textbox');
+  return new TextboxCtor('', {
     left: x,
     top: y,
+    width: 200, // Initial width for the textbox
     fill: finalConfig.strokeColor,
     fontSize: 18,
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -308,38 +311,76 @@ export function createText(
     selectable: true,
     evented: true,
     editable: true,
+    // Text box behavior
+    splitByGrapheme: true,
     // Better text rendering
     lineHeight: 1.4,
     charSpacing: 0,
-    // Text box behavior
-    splitByGrapheme: true,
+    textAlign: 'left',
     // Improved appearance
-    opacity: 0.5,
-    // Better interaction
+    opacity: 1,
+    // Interaction
     lockScalingFlip: true,
-    // Padding for better click area
-    padding: 4,
+    lockSkewingX: true,
+    lockSkewingY: true,
+    // Only allow horizontal scaling (width adjustment)
+    lockScalingY: true,
+    // Padding for better text area
+    padding: 8,
+    // Borders/controls enabled - visibility managed by selection handlers (see useAnnotationInternal.ts)
+    hasBorders: true,
+    hasControls: true,
     // Corner style
     cornerStyle: 'circle',
     cornerColor: finalConfig.strokeColor,
-    cornerSize: 8,
+    cornerSize: 6,
     transparentCorners: false,
-    // Border styling
+    // Border styling - clean and minimal
     borderColor: finalConfig.strokeColor,
-    borderDashArray: [5, 5],
-    borderScaleFactor: 1.5
+    borderScaleFactor: 1,
+    // Make corners easier to grab
+    touchCornerSize: 12,
+    // Control positioning
+    centeredScaling: false
   });
 }
 
 /**
- * Update canvas mode based on active tool
+ * Update the canvas interaction mode based on the active tool
  */
 export function updateCanvasMode(
-  canvas: FabricCanvas, 
-  activeTool: string | null
+  canvas: FabricCanvas,
+  activeTool?: Tool | null
 ): void {
+  // Exit any active text editing before switching tools
+  const activeObjects = canvas.getActiveObjects?.();
+  const activeObject = activeObjects && activeObjects.length > 0 ? activeObjects[0] : null;
+  
+  if (activeObject) {
+    const textObj = activeObject as unknown as { 
+      type?: string; 
+      isEditing?: boolean;
+      exitEditing?: () => void;
+    };
+    
+    // If there's a text object being edited, exit editing mode
+    if ((textObj.type === 'textbox' || textObj.type === 'i-text' || textObj.type === 'text') && textObj.isEditing) {
+      try {
+        textObj.exitEditing?.();
+      } catch (error) {
+        console.warn('[AnnotationLayer] Error exiting text editing:', error);
+      }
+    }
+    
+    // When switching away from text tool, deselect any active object
+    if (activeTool !== 'text' && activeTool !== 'select') {
+      canvas.discardActiveObject?.();
+      canvas.renderAll();
+    }
+  }
+
   // Normalize tool aliases
-  const normalizedTool = (() => {
+  const normalizedTool: "freehand" | "rectangle" | "circle" | "select" | "arrow" | "line" | "text" | null = (() => {
     if (!activeTool) return null;
     if (["freedraw", "freehand", "draw", "brush"].includes(activeTool)) return "freehand";
     if (["rectangle", "rect"].includes(activeTool)) return "rectangle";
@@ -348,7 +389,7 @@ export function updateCanvasMode(
     if (["arrow"].includes(activeTool)) return "arrow";
     if (["line"].includes(activeTool)) return "line";
     if (["text"].includes(activeTool)) return "text";
-    return activeTool;
+    return null;
   })();
 
   // Only freehand drawing enables drawing mode
@@ -366,8 +407,8 @@ export function updateCanvasMode(
   } else {
     canvas.isDrawingMode = false;
     canvas.selection = normalizedTool === "select";
-    // Allow selection for text tool, disable for other drawing tools
-    canvas.skipTargetFind = normalizedTool !== "select" && normalizedTool !== "text";
+    // Allow selection for select tool, disable for other drawing tools
+    canvas.skipTargetFind = normalizedTool !== "select";
     canvas.defaultCursor = normalizedTool === "select" ? 'default' : 'crosshair';
     canvas.hoverCursor = 'move';
   }

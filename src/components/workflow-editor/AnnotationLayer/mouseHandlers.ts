@@ -39,19 +39,28 @@ export function createMouseDownHandler(
       canvas.add(textShape);
       canvas.setActiveObject(textShape);
       
-      // Enter edit mode and select all placeholder text for easy replacement
+      // Enter edit mode and setup text box behavior
       const textObj = textShape as unknown as { 
-        enterEditing?: () => void;
-        exitEditing?: () => void;
+        enterEditing?: () => void; 
+        exitEditing?: () => void; 
         selectAll?: () => void;
         hiddenTextarea?: HTMLTextAreaElement;
-        text?: string;
+        text?: string; 
         set?: (props: Record<string, unknown>) => void;
         __isPlaceholder?: boolean;
-      };
-      
-      // Mark as placeholder
+        __placeholderText?: string;
+        isEditing?: boolean;
+      };      // Set placeholder and show borders/controls for resizing while typing
+      const placeholderText = 'Type here...';
       textObj.__isPlaceholder = true;
+      textObj.__placeholderText = placeholderText;
+      textObj.set?.({ 
+        text: placeholderText,
+        fill: 'rgba(128, 128, 128, 0.5)', // Gray placeholder color
+        fontStyle: 'italic',
+        hasBorders: true,  // Show borders while typing
+        hasControls: true  // Show controls for resizing while typing
+      });
       
       // Store cleanup references
       let timeoutId: NodeJS.Timeout | null = null;
@@ -75,9 +84,15 @@ export function createMouseDownHandler(
       
       // Handle text changes to clear placeholder on first real input
       const handleTextChanged = () => {
-        if (textObj.__isPlaceholder && textObj.text && textObj.text !== 'Click to type...') {
+        if (textObj.__isPlaceholder && textObj.text !== textObj.__placeholderText) {
           textObj.__isPlaceholder = false;
-          textObj.set?.({ opacity: 1 });
+          // Get the theme color
+          const isDark = document.documentElement.classList.contains('dark');
+          const textColor = isDark ? '#ffffff' : '#000000';
+          textObj.set?.({ 
+            fill: textColor,
+            fontStyle: 'normal'
+          });
           canvas.renderAll();
         }
       };
@@ -89,37 +104,63 @@ export function createMouseDownHandler(
         }
       };
       
-      // Handle editing exit - remove if still placeholder and empty
+      // Handle editing exit - save text and hide controls after editing is complete
       const handleEditingExited = () => {
         // If user exits without typing anything meaningful, remove the text object
-        if (textObj.__isPlaceholder || !textObj.text || textObj.text.trim() === '' || textObj.text === 'Click to type...') {
+        if (textObj.__isPlaceholder || !textObj.text || textObj.text.trim() === '' || textObj.text === textObj.__placeholderText) {
           canvas.remove(textShape);
           canvas.renderAll();
         } else {
-          // Make fully opaque when done editing
-          textObj.set?.({ opacity: 1 });
-          canvas.renderAll();
+          // When done editing, save text and hide controls
+          try {
+            // Exit editing mode if still in it
+            if (textObj.isEditing) {
+              textObj.exitEditing?.();
+            }
+            
+            // NOW hide controls after text is saved
+            textObj.set?.({ 
+              hasBorders: false,
+              hasControls: false
+            });
+            
+            // Deselect the object so it's not stuck to cursor
+            canvas.discardActiveObject?.();
+            canvas.renderAll();
+          } catch (error) {
+            console.warn('[AnnotationLayer] Error during text exit:', error);
+          }
         }
         cleanup();
       };
       
       // Small delay to ensure text is rendered before entering edit mode
       timeoutId = setTimeout(() => {
-        timeoutId = null; // Clear reference after timeout fires
+        // Clear timeout reference immediately to prevent double-execution
+        const currentTimeoutId = timeoutId;
+        timeoutId = null;
+        
+        // Check if cleanup already ran - if so, don't register listeners
+        if (cleanupDone || currentTimeoutId === null) {
+          return;
+        }
         
         try {
           // Enter editing mode
           textObj.enterEditing?.();
           
-          // Select all placeholder text immediately
+          // Select all placeholder text immediately so typing replaces it
           if (textObj.hiddenTextarea) {
             textObj.hiddenTextarea.select();
           }
           
-          // Setup cleanup listeners for object lifecycle
-          canvas.on('object:removed', handleRemoved);
-          canvas.on('text:editing:exited', handleEditingExited);
-          canvas.on('text:changed', handleTextChanged);
+          // Only register listeners if cleanup hasn't run
+          if (!cleanupDone) {
+            // Setup cleanup listeners for object lifecycle
+            canvas.on('object:removed', handleRemoved);
+            canvas.on('text:editing:exited', handleEditingExited);
+            canvas.on('text:changed', handleTextChanged);
+          }
           
         } catch (error) {
           console.warn('[AnnotationLayer] Failed to enter text edit mode:', error);

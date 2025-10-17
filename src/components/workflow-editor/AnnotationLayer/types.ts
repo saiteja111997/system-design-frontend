@@ -43,6 +43,7 @@ export interface FabricCanvas {
   remove(object: FabricObject): void;
   getObjects(): FabricObject[];
   getActiveObjects(): FabricObject[];
+  getActiveObject(): FabricObject | null;
   setActiveObject(object: FabricObject): void;
   discardActiveObject(): void;
   clear(): void;

@@ -188,7 +188,7 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   const handleTextCreated = useCallback((textObject: FabricObject) => {
     if (!canvas) return;
     
-    // Listen for when text editing is completed
+    // Create a one-time listener for when text editing is completed
     const handleEditingExited = (e?: FabricEvent) => {
       // Only process if this is the text object we're tracking
       if (e?.target !== textObject) return;
@@ -206,15 +206,13 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         canvas.renderAll();
       }
       // Note: Empty text removal is now handled in mouseHandlers.ts
-    };
-    
-    // Listen for editing:exited event
-    canvas.on('text:editing:exited', handleEditingExited);
-    
-    // Cleanup when canvas is destroyed
-    return () => {
+      
+      // Self-cleanup: Remove this listener after it fires once
       canvas.off('text:editing:exited', handleEditingExited);
     };
+    
+    // Listen for editing:exited event (will self-remove after first trigger)
+    canvas.on('text:editing:exited', handleEditingExited);
   }, [canvas, saveToHistoryImmediate]);
 
   // Mouse handlers
@@ -229,7 +227,7 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   // Initial add is handled by mouseUp handler to avoid duplicate saves
   useEffect(() => {
     if (!canvas) return;
-    const relevant = (t?: string) => !!t && ['rect','circle','path','line','i-text','text'].includes(t);
+    const relevant = (t?: string) => !!t && ['rect','circle','path','line','i-text','text','textbox'].includes(t);
     
     // Only track modifications (move, resize, rotate) - not initial creation
     const modified = (e?: import('./types').FabricEvent) => { 
@@ -283,6 +281,46 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     canvas.on('mouse:move', handleMouseMove);
     canvas.on('mouse:up', handleMouseUp);
     
+    // Handle selection - show controls only when text is selected
+    const handleSelection = (e?: FabricEvent) => {
+      const event = e as unknown as { selected?: FabricObject[] };
+      if (!event?.selected || !event.selected[0]) return;
+      
+      const target = event.selected[0] as unknown as { 
+        type?: string;
+        set?: (props: Record<string, unknown>) => void;
+      };
+      
+      // Show borders and controls when text is selected
+      if (target.type === 'textbox' || target.type === 'i-text' || target.type === 'text') {
+        target.set?.({ 
+          hasBorders: true,
+          hasControls: true
+        });
+        canvas.renderAll();
+      }
+    };
+    
+    // Handle deselection - hide controls when text is deselected
+    const handleDeselection = () => {
+      const objects = canvas.getObjects();
+      objects.forEach(obj => {
+        const objWithType = obj as unknown as { 
+          type?: string;
+          set?: (props: Record<string, unknown>) => void;
+        };
+        
+        // Hide borders and controls for all text objects when nothing is selected
+        if (objWithType.type === 'textbox' || objWithType.type === 'i-text' || objWithType.type === 'text') {
+          objWithType.set?.({ 
+            hasBorders: false,
+            hasControls: false
+          });
+        }
+      });
+      canvas.renderAll();
+    };
+    
     // Handle double-click on text objects to enter edit mode
     const handleDoubleClick = (e?: FabricEvent) => {
       if (!e?.target) return;
@@ -291,11 +329,17 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         type?: string; 
         enterEditing?: () => void;
         selectAll?: () => void;
+        set?: (props: Record<string, unknown>) => void;
       };
       
       // If double-clicking a text object, enter edit mode
-      if (target.type === 'i-text' || target.type === 'text') {
+      if (target.type === 'textbox' || target.type === 'i-text' || target.type === 'text') {
         canvas.setActiveObject(e.target);
+        // Show controls while editing
+        target.set?.({ 
+          hasBorders: true,
+          hasControls: true
+        });
         setTimeout(() => {
           target.enterEditing?.();
           canvas.renderAll();
@@ -303,12 +347,18 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       }
     };
     
+    canvas.on('selection:created', handleSelection);
+    canvas.on('selection:updated', handleSelection);
+    canvas.on('selection:cleared', handleDeselection);
     canvas.on('mouse:dblclick', handleDoubleClick);
     
     return () => {
       canvas.off('mouse:down', handleMouseDown);
       canvas.off('mouse:move', handleMouseMove);
       canvas.off('mouse:up', handleMouseUp);
+      canvas.off('selection:created', handleSelection);
+      canvas.off('selection:updated', handleSelection);
+      canvas.off('selection:cleared', handleDeselection);
       canvas.off('mouse:dblclick', handleDoubleClick);
     };
   }, [canvas, initError, activeTool, handleMouseDown, handleMouseMove, handleMouseUp]);
