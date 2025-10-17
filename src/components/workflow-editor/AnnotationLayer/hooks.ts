@@ -103,7 +103,7 @@ export function useDrawingState() {
  * Hook for managing history and persistence
  * Returns a stable debounced save function that can be flushed on demand
  */
-export function useHistoryManager(canvas: FabricCanvas | null) {
+export function useHistoryManager(canvas: FabricCanvas | null, blockSavesRef?: React.RefObject<boolean>) {
   const historyManagerRef = useRef<HistoryManager>(new HistoryManager(50));
   
   // Flag to track if we need to flush pending saves
@@ -115,6 +115,12 @@ export function useHistoryManager(canvas: FabricCanvas | null) {
    */
   const saveToHistory = useCallback(() => {
     if (!canvas) return;
+    
+    // Check if saves are blocked (during undo/redo operations)
+    if (blockSavesRef?.current) {
+      console.log('[AnnotationLayer] History save blocked during undo/redo operation');
+      return;
+    }
     
     // Verify canvas is serializable before attempting to save
     if (!isSerializableCanvas(canvas)) {
@@ -130,7 +136,7 @@ export function useHistoryManager(canvas: FabricCanvas | null) {
     } finally {
       hasPendingSaveRef.current = false;
     }
-  }, [canvas]);
+  }, [canvas, blockSavesRef]);
 
   /**
    * Create debounced version for high-frequency operations (drawing, dragging)

@@ -31,12 +31,82 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   
   const canvas = fabricCanvasRef.current;
   
-  // Pass canvas to history manager so it can create stable save functions
-  const { historyManagerRef, saveToHistory, saveToHistoryImmediate } = useHistoryManager(canvas);
-  const historyManager = historyManagerRef.current;
-
   // Lock to prevent concurrent undo/redo operations
   const undoRedoLockRef = useRef(false);
+  
+  // Flag to completely block history saves during undo/redo restore operations
+  const blockHistorySavesRef = useRef(false);
+  
+  // Flag to track if initial history has been saved
+  const initialHistorySavedRef = useRef(false);
+  
+  // Pass canvas AND block flag to history manager so it can check before saving
+  const { historyManagerRef, saveToHistory, saveToHistoryImmediate } = useHistoryManager(canvas, blockHistorySavesRef);
+  const historyManager = historyManagerRef.current;
+
+  // Undo handler with proper ref access
+  const handleUndo = useCallback(async () => {
+    if (!canvas || !historyManager) return;
+    
+    // Check lock to prevent concurrent undo/redo operations
+    if (undoRedoLockRef.current) {
+      console.warn('[AnnotationLayer] Undo operation already in progress');
+      return;
+    }
+    
+    // Set lock BEFORE try block to ensure it's set synchronously
+    undoRedoLockRef.current = true;
+    blockHistorySavesRef.current = true; // Block ALL history saves during undo
+    
+    try {
+      const state = historyManager.undo(); 
+      if (state) {
+        // restoreCanvas handles the async delay (up to 300ms timeout)
+        await restoreCanvas(canvas as AnnotationCanvas, state);
+        // Use deferred render for optimized repaint
+        deferredRender(canvas as AnnotationCanvas);
+      }
+    } catch (error) {
+      console.error('[AnnotationLayer] Failed to undo:', error);
+    } finally {
+      // Release locks immediately after restoreCanvas completes
+      // The await above already provides necessary timing protection
+      undoRedoLockRef.current = false;
+      blockHistorySavesRef.current = false;
+    }
+  }, [canvas, historyManager]);
+
+  // Redo handler with proper ref access
+  const handleRedo = useCallback(async () => {
+    if (!canvas || !historyManager) return;
+    
+    // Check lock to prevent concurrent undo/redo operations
+    if (undoRedoLockRef.current) {
+      console.warn('[AnnotationLayer] Redo operation already in progress');
+      return;
+    }
+    
+    // Set lock BEFORE try block to ensure it's set synchronously
+    undoRedoLockRef.current = true;
+    blockHistorySavesRef.current = true; // Block ALL history saves during redo
+    
+    try {
+      const state = historyManager.redo(); 
+      if (state) {
+        // restoreCanvas handles the async delay (up to 300ms timeout)
+        await restoreCanvas(canvas as AnnotationCanvas, state);
+        // Use deferred render for optimized repaint
+        deferredRender(canvas as AnnotationCanvas);
+      }
+    } catch (error) {
+      console.error('[AnnotationLayer] Failed to redo:', error);
+    } finally {
+      // Release locks immediately after restoreCanvas completes
+      // The await above already provides necessary timing protection
+      undoRedoLockRef.current = false;
+      blockHistorySavesRef.current = false;
+    }
+  }, [canvas, historyManager]);
 
   // Imperative API
   const handlers = useMemo<AnnotationLayerHandle>(() => ({
@@ -44,11 +114,16 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     load: async (json) => { 
       if (canvas && json) {
         try {
+          // Suppress any saves triggered during load
+          if (historyManager) {
+            historyManager.suppressNext();
+          }
           await restoreCanvas(canvas as AnnotationCanvas, json);
           // Use deferred render for optimized repaint
           deferredRender(canvas as AnnotationCanvas, () => {
-            // Save the loaded state as new starting point (this creates initial history)
-            saveToHistoryImmediate();
+            // Save the loaded state as new starting point
+            // Only save if this is NOT the initial load (handled by the initial save effect)
+            // We rely on the initial save effect to handle the first save
           });
         } catch (error) {
           console.error('[AnnotationLayer] Failed to load canvas state:', error);
@@ -80,58 +155,8 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       // Save the empty state as the new baseline
       saveToHistoryImmediate();
     },
-    undo: async () => { 
-      if (!canvas || !historyManager) return;
-      
-      // Check lock to prevent concurrent undo/redo operations
-      if (undoRedoLockRef.current) {
-        console.warn('[AnnotationLayer] Undo operation already in progress');
-        return;
-      }
-      
-      try {
-        undoRedoLockRef.current = true;
-        
-        const state = historyManager.undo(); 
-        if (state) {
-          // Suppress saves during restore operation
-          historyManager.suppressNext();
-          await restoreCanvas(canvas as AnnotationCanvas, state);
-          // Use deferred render for optimized repaint
-          deferredRender(canvas as AnnotationCanvas);
-        }
-      } catch (error) {
-        console.error('[AnnotationLayer] Failed to undo:', error);
-      } finally {
-        undoRedoLockRef.current = false;
-      }
-    },
-    redo: async () => { 
-      if (!canvas || !historyManager) return;
-      
-      // Check lock to prevent concurrent undo/redo operations
-      if (undoRedoLockRef.current) {
-        console.warn('[AnnotationLayer] Redo operation already in progress');
-        return;
-      }
-      
-      try {
-        undoRedoLockRef.current = true;
-        
-        const state = historyManager.redo(); 
-        if (state) {
-          // Suppress saves during restore operation
-          historyManager.suppressNext();
-          await restoreCanvas(canvas as AnnotationCanvas, state);
-          // Use deferred render for optimized repaint
-          deferredRender(canvas as AnnotationCanvas);
-        }
-      } catch (error) {
-        console.error('[AnnotationLayer] Failed to redo:', error);
-      } finally {
-        undoRedoLockRef.current = false;
-      }
-    },
+    undo: handleUndo,
+    redo: handleRedo,
     getCanvas: () => canvas,
     exportHistory: () => {
       if (!historyManager) return null;
@@ -155,7 +180,7 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         }
       }
     }
-  }), [canvas, historyManager, saveToHistoryImmediate]);
+  }), [canvas, historyManager, saveToHistoryImmediate, handleUndo, handleRedo]);
 
   useImperativeHandle(ref, () => handlers, [handlers]);
 
@@ -270,11 +295,12 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   // Save initial history snapshot AFTER canvas is ready and initial state loaded
   // This ensures we capture the correct starting state
   useEffect(() => { 
-    if (!canvas || !isReady || initError) return;
+    if (!canvas || !isReady || initError || initialHistorySavedRef.current) return;
     
     // Save initial state immediately to establish history baseline
     // This is critical for redo to work after complete undo
     saveToHistoryImmediate();
+    initialHistorySavedRef.current = true;
   }, [canvas, isReady, initError, saveToHistoryImmediate]);
 
   const retry = useCallback(() => { setInitError(null); try { initializeCanvas(); setIsReady(true);} catch(e){ setInitError(e instanceof Error ? e.message : 'Retry failed'); } }, [initializeCanvas]);
