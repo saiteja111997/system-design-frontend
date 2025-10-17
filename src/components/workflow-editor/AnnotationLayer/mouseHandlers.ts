@@ -3,7 +3,14 @@
  */
 
 import { normalizeRectangle } from '../../../utils/annotationUtils';
-import { createRectangle, createCircle, finalizeShape } from './canvasOperations';
+import { 
+  createRectangle, 
+  createCircle, 
+  createLine, 
+  createArrow, 
+  createText, 
+  finalizeShape 
+} from './canvasOperations';
 import type { 
   FabricCanvas, 
   FabricObject, 
@@ -24,6 +31,18 @@ export function createMouseDownHandler(
     if (!e || !activeTool || activeTool === 'select') return;
 
     const pointer = canvas.getPointer(e.e);
+    
+    // Special handling for text tool - create immediately and make editable
+    if (activeTool === 'text') {
+      const textShape = createText(pointer.x, pointer.y);
+      canvas.add(textShape);
+      canvas.setActiveObject(textShape);
+      // Enter edit mode immediately
+      (textShape as unknown as { enterEditing?: () => void }).enterEditing?.();
+      canvas.renderAll();
+      return;
+    }
+
     setDrawingState({
       isDrawing: true,
       startPoint: { x: pointer.x, y: pointer.y },
@@ -37,6 +56,12 @@ export function createMouseDownHandler(
       canvas.add(shape);
     } else if (activeTool === 'circle') {
       shape = createCircle(pointer.x, pointer.y);
+      canvas.add(shape);
+    } else if (activeTool === 'line') {
+      shape = createLine(pointer.x, pointer.y);
+      canvas.add(shape);
+    } else if (activeTool === 'arrow') {
+      shape = createArrow(pointer.x, pointer.y);
       canvas.add(shape);
     }
 
@@ -63,6 +88,10 @@ export function createMouseMoveHandler(
       updateRectangleShape(drawingState.currentShape, drawingState.startPoint, pointer);
     } else if (activeTool === 'circle' && drawingState.currentShape) {
       updateCircleShape(drawingState.currentShape, drawingState.startPoint, pointer);
+    } else if (activeTool === 'line' && drawingState.currentShape) {
+      updateLineShape(drawingState.currentShape, drawingState.startPoint, pointer);
+    } else if (activeTool === 'arrow' && drawingState.currentShape) {
+      updateArrowShape(drawingState.currentShape, drawingState.startPoint, pointer);
     }
 
     canvas.renderAll();
@@ -73,6 +102,7 @@ export function createMouseMoveHandler(
  * Mouse up event handler for drawing operations
  */
 export function createMouseUpHandler(
+  canvas: FabricCanvas,
   drawingState: DrawingState,
   setDrawingState: (state: DrawingState) => void,
   saveToHistory: () => void,
@@ -83,6 +113,12 @@ export function createMouseUpHandler(
     if (!drawingState.isDrawing) return;
 
     if (drawingState.currentShape) {
+      // Add arrowhead for arrow shapes
+      const shapeWithType = drawingState.currentShape as unknown as { arrowType?: string };
+      if (shapeWithType.arrowType === 'arrow') {
+        addArrowhead(canvas, drawingState.currentShape);
+      }
+      
       finalizeShape(drawingState.currentShape);
       saveToHistory();
       onFinish?.();
@@ -137,4 +173,99 @@ function updateCircleShape(
     top: Math.min(startPoint.y, currentPoint.y),
     radius: radius
   });
+}
+
+/**
+ * Update line shape during drawing
+ */
+function updateLineShape(
+  shape: FabricObject,
+  startPoint: { x: number; y: number },
+  currentPoint: { x: number; y: number }
+): void {
+  (shape as unknown as { set: (options: Record<string, unknown>) => void }).set({
+    x2: currentPoint.x,
+    y2: currentPoint.y
+  });
+}
+
+/**
+ * Update arrow shape during drawing
+ * Arrow is a line with an arrowhead at the end
+ */
+function updateArrowShape(
+  shape: FabricObject,
+  startPoint: { x: number; y: number },
+  currentPoint: { x: number; y: number }
+): void {
+  // Update the line portion
+  (shape as unknown as { set: (options: Record<string, unknown>) => void }).set({
+    x2: currentPoint.x,
+    y2: currentPoint.y
+  });
+}
+
+/**
+ * Add an arrowhead to a line shape
+ * Creates a triangle at the end of the line pointing in the direction of the line
+ */
+function addArrowhead(canvas: FabricCanvas, lineShape: FabricObject): void {
+  try {
+    const line = lineShape as unknown as { 
+      x1?: number; 
+      y1?: number; 
+      x2?: number; 
+      y2?: number;
+      stroke?: string;
+      strokeWidth?: number;
+      arrowHeadSize?: number;
+    };
+    
+    const x1 = line.x1 ?? 0;
+    const y1 = line.y1 ?? 0;
+    const x2 = line.x2 ?? 0;
+    const y2 = line.y2 ?? 0;
+    
+    // Calculate angle of the line
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    
+    // Read arrowhead size from the line object, fallback to 15 if not set
+    const headLength = line.arrowHeadSize ?? 15;
+    const headAngle = Math.PI / 6; // 30 degrees
+    
+    // Calculate arrowhead points
+    const arrowPoint1X = x2 - headLength * Math.cos(angle - headAngle);
+    const arrowPoint1Y = y2 - headLength * Math.sin(angle - headAngle);
+    const arrowPoint2X = x2 - headLength * Math.cos(angle + headAngle);
+    const arrowPoint2Y = y2 - headLength * Math.sin(angle + headAngle);
+    
+    // Create arrowhead lines
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fabricModule = typeof window !== 'undefined' ? require('fabric') : {};
+    const fabricNs = fabricModule.fabric || fabricModule;
+    
+    if (fabricNs.Line) {
+      const arrowLine1 = new fabricNs.Line([x2, y2, arrowPoint1X, arrowPoint1Y], {
+        stroke: line.stroke || '#000',
+        strokeWidth: line.strokeWidth || 2,
+        selectable: false,
+        evented: false
+      });
+      
+      const arrowLine2 = new fabricNs.Line([x2, y2, arrowPoint2X, arrowPoint2Y], {
+        stroke: line.stroke || '#000',
+        strokeWidth: line.strokeWidth || 2,
+        selectable: false,
+        evented: false
+      });
+      
+      canvas.add(arrowLine1);
+      canvas.add(arrowLine2);
+      
+      // Store reference to arrowhead lines on the main line for cleanup
+      (lineShape as unknown as { arrowheadLines?: FabricObject[] }).arrowheadLines = [arrowLine1, arrowLine2];
+    }
+  } catch (e) {
+    console.warn('[AnnotationLayer] Failed to add arrowhead', e);
+  }
 }

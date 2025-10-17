@@ -15,6 +15,10 @@ type FabricNamespace = {
   Canvas: new (el: HTMLCanvasElement, opts: Record<string, unknown>) => FabricCanvas;
   Rect: new (opts: Record<string, unknown>) => FabricObject;
   Circle: new (opts: Record<string, unknown>) => FabricObject;
+  Line: new (coords: number[], opts: Record<string, unknown>) => FabricObject;
+  Triangle: new (opts: Record<string, unknown>) => FabricObject;
+  Group: new (objects: FabricObject[], opts: Record<string, unknown>) => FabricObject;
+  IText: new (text: string, opts: Record<string, unknown>) => FabricObject;
   PencilBrush?: new (canvas: FabricCanvas) => { width: number; color: string };
 };
 
@@ -171,12 +175,15 @@ export function configureBrush(
 export function applyThemeColors(canvas: FabricCanvas, theme?: 'dark' | 'light') {
   try {
     const cfg = getDefaultDrawingConfig(theme);
-    // Update existing drawable objects (rect, circle, path)
+    // Update existing drawable objects (rect, circle, path, line, text)
     canvas.getObjects().forEach(obj => {
       const t = (obj as unknown as { type?: string }).type;
-      if (t && ['rect','circle','path'].includes(t)) {
+      if (t && ['rect','circle','path','line'].includes(t)) {
         // Safely set stroke if supported
         (obj as unknown as { set: (props: Record<string, unknown>) => void }).set?.({ stroke: cfg.strokeColor });
+      } else if (t && ['i-text','text'].includes(t)) {
+        // For text objects, update fill instead of stroke
+        (obj as unknown as { set: (props: Record<string, unknown>) => void }).set?.({ fill: cfg.strokeColor });
       }
     });
     configureBrush(canvas, cfg);
@@ -234,6 +241,76 @@ export function createCircle(
 }
 
 /**
+ * Create a line shape for drawing
+ */
+export function createLine(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  const LineCtor = ensureFabric('Line');
+  return new LineCtor([x, y, x, y], {
+    stroke: finalConfig.strokeColor,
+    strokeWidth: finalConfig.strokeWidth,
+    selectable: false,
+    evented: false
+  });
+}
+
+/**
+ * Create an arrow shape for drawing
+ * Arrow is a line with arrowhead markers
+ */
+export function createArrow(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  const LineCtor = ensureFabric('Line');
+  const line = new LineCtor([x, y, x, y], {
+    stroke: finalConfig.strokeColor,
+    strokeWidth: finalConfig.strokeWidth,
+    selectable: false,
+    evented: false,
+    // Add arrowhead at the end of the line
+    strokeLineCap: 'round'
+  });
+  
+  // Store arrow metadata to identify it and add arrowhead after drawing
+  (line as unknown as { arrowType?: string; arrowHeadSize?: number }).arrowType = 'arrow';
+  (line as unknown as { arrowType?: string; arrowHeadSize?: number }).arrowHeadSize = 10;
+  
+  return line;
+}
+
+/**
+ * Create a text object for drawing
+ */
+export function createText(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  const ITextCtor = ensureFabric('IText');
+  return new ITextCtor('Text', {
+    left: x,
+    top: y,
+    fill: finalConfig.strokeColor,
+    fontSize: 20,
+    fontFamily: 'Arial',
+    selectable: true,
+    evented: true,
+    editable: true
+  });
+}
+
+/**
  * Update canvas mode based on active tool
  */
 export function updateCanvasMode(
@@ -247,10 +324,13 @@ export function updateCanvasMode(
     if (["rectangle", "rect"].includes(activeTool)) return "rectangle";
     if (["ellipse", "circle"].includes(activeTool)) return "circle";
     if (["select", "selection"].includes(activeTool)) return "select";
+    if (["arrow"].includes(activeTool)) return "arrow";
+    if (["line"].includes(activeTool)) return "line";
+    if (["text"].includes(activeTool)) return "text";
     return activeTool;
   })();
 
-  // Only drawing tools enable drawing mode
+  // Only freehand drawing enables drawing mode
   if (normalizedTool === "freehand") {
     canvas.isDrawingMode = true;
     canvas.selection = false;
@@ -258,7 +338,8 @@ export function updateCanvasMode(
   } else {
     canvas.isDrawingMode = false;
     canvas.selection = normalizedTool === "select";
-    canvas.skipTargetFind = normalizedTool !== "select";
+    // Allow selection for text tool, disable for other drawing tools
+    canvas.skipTargetFind = normalizedTool !== "select" && normalizedTool !== "text";
   }
   canvas.renderAll();
 }

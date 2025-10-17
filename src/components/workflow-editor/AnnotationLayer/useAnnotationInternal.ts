@@ -187,13 +187,13 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   // Mouse handlers
   const handleMouseDown = useCallback((e?: FabricEvent) => { if (!canvas) return; createMouseDownHandler(canvas, activeTool, setDrawingState)(e); }, [canvas, activeTool, setDrawingState]);
   const handleMouseMove = useCallback((e?: FabricEvent) => { if (!canvas) return; createMouseMoveHandler(canvas, activeTool, drawingState)(e); }, [canvas, activeTool, drawingState]);
-  const handleMouseUp = useCallback(() => { createMouseUpHandler(drawingState, setDrawingState, saveToHistory, onFinish)(); }, [drawingState, setDrawingState, saveToHistory, onFinish]);
+  const handleMouseUp = useCallback(() => { if (!canvas) return; createMouseUpHandler(canvas, drawingState, setDrawingState, saveToHistory, onFinish)(); }, [canvas, drawingState, setDrawingState, saveToHistory, onFinish]);
 
   // Object modify history - only save on modifications, not on initial add
   // Initial add is handled by mouseUp handler to avoid duplicate saves
   useEffect(() => {
     if (!canvas) return;
-    const relevant = (t?: string) => !!t && ['rect','circle','path'].includes(t);
+    const relevant = (t?: string) => !!t && ['rect','circle','path','line','i-text','text'].includes(t);
     
     // Only track modifications (move, resize, rotate) - not initial creation
     const modified = (e?: import('./types').FabricEvent) => { 
