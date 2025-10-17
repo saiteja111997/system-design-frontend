@@ -3,13 +3,9 @@ import type { CanvasState } from "../../utils/annotationUtils";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
-import {
-  WorkflowHeader,
-  WorkflowCanvas,
-  WorkflowFooter,
-  useWorkflowState,
-  useWorkflowInteractions,
-} from ".";
+import { WorkflowHeader, WorkflowCanvas, WorkflowFooter } from ".";
+import { useWorkflowStore } from "@/hooks/useWorkflowStore";
+import { useOptimizedWorkflowInteractions } from "@/hooks/useOptimizedWorkflowInteractions";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { CanvasControlsProvider } from "@/contexts/CanvasControlsContext";
 import {
@@ -175,33 +171,27 @@ const WorkflowEditorContent: React.FC = () => {
     handleDockItemClick(itemId, dockHandlers);
   };
 
-  // State management
-  const {
-    nodes,
-    edges,
-    selectedNode,
-    draggingNode,
-    dragOffset,
-    connecting,
-    tempLine,
-    requestsPerSecond,
-    runCode,
-    setSelectedNode,
-    setDraggingNode,
-    setDragOffset,
-    setConnecting,
-    setTempLine,
-    setRequestsPerSecond,
-    setRunCode,
-    addNode,
-    deleteNode,
-    deleteEdge,
-    addEdge,
-    updateNodePosition,
-    updateNode,
-  } = useWorkflowState();
+  // State management using direct Zustand selectors
+  const nodes = useWorkflowStore((state) => state.nodes);
+  const edges = useWorkflowStore((state) => state.edges);
+  const selectedNode = useWorkflowStore((state) => state.selectedNode);
+  const draggingNode = useWorkflowStore((state) => state.draggingNode);
+  const tempLine = useWorkflowStore((state) => state.tempLine);
+  const requestsPerSecond = useWorkflowStore(
+    (state) => state.requestsPerSecond
+  );
+  const runCode = useWorkflowStore((state) => state.runCode);
 
-  // Interaction handlers
+  // Actions using direct Zustand selectors
+  const addNode = useWorkflowStore((state) => state.addNode);
+  const deleteEdge = useWorkflowStore((state) => state.deleteEdge);
+  const updateNode = useWorkflowStore((state) => state.updateNode);
+  const setRequestsPerSecond = useWorkflowStore(
+    (state) => state.setRequestsPerSecond
+  );
+  const setRunCode = useWorkflowStore((state) => state.setRunCode);
+
+  // Optimized interaction handlers
   const {
     handleNodeMouseDown,
     handleMouseMove,
@@ -210,20 +200,8 @@ const WorkflowEditorContent: React.FC = () => {
     handleStartConnection,
     handleEndConnection,
     handleDeleteNode,
-  } = useWorkflowInteractions({
-    nodes,
-    draggingNode,
-    connecting,
-    dragOffset,
+  } = useOptimizedWorkflowInteractions({
     canvasRef,
-    setSelectedNode,
-    setDraggingNode,
-    setDragOffset,
-    setConnecting,
-    setTempLine,
-    updateNodePosition,
-    addEdge,
-    deleteNode,
   });
 
   // Handler objects for cleaner prop passing

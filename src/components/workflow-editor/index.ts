@@ -8,5 +8,4 @@ export { SvgDefinitions } from "./SvgDefinitions";
 export { TempConnectionLine } from "./TempConnectionLine";
 export { WorkflowEditorSummary } from "./WorkflowEditorSummary";
 export { GlowWrapper } from "./GlowWrapper";
-export { useWorkflowState } from "./useWorkflowState";
 export { useWorkflowInteractions } from "./useWorkflowInteractions";

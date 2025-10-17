@@ -9,8 +9,6 @@ import {
   Type,
   MessageSquare,
   Maximize,
-  ZoomIn,
-  ZoomOut,
   Undo2,
   Redo2,
 } from "lucide-react";
