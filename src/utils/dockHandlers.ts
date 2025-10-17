@@ -77,6 +77,15 @@ export const handleDockItemClick = (
     case "free-draw":
       handlers.handleAnnotationTool("freedraw");
       break;
+    case "arrow":
+      handlers.handleAnnotationTool("arrow");
+      break;
+    case "line":
+      handlers.handleAnnotationTool("line");
+      break;
+    case "text":
+      handlers.handleAnnotationTool("text");
+      break;
     default:
       // Handle other dock items here
       console.log(`Clicked dock item: ${itemId}`);

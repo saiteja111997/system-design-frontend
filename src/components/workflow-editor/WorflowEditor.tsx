@@ -267,6 +267,8 @@ const WorkflowEditorContent: React.FC = () => {
                     left: 0,
                     width: "100%",
                     height: "100%",
+                    // Keep pointer-events auto to allow selecting/moving saved objects
+                    // pointerEvents: "auto",
                     pointerEvents: activeTool === "select" ? "none" : "auto",
                   }}
                 />

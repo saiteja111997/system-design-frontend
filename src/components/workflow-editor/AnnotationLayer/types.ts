@@ -7,7 +7,7 @@ import type { CanvasState } from '../../../utils/annotationUtils';
 /**
  * Available annotation tools
  */
-export type Tool = 'select' | 'rectangle' | 'circle' | 'freehand' | 'freedraw';
+export type Tool = 'select' | 'rectangle' | 'circle' | 'freehand' | 'freedraw' | 'arrow' | 'line' | 'text';
 
 /**
  * Fabric.js event interface
@@ -43,6 +43,8 @@ export interface FabricCanvas {
   remove(object: FabricObject): void;
   getObjects(): FabricObject[];
   getActiveObjects(): FabricObject[];
+  getActiveObject(): FabricObject | null;
+  setActiveObject(object: FabricObject): void;
   discardActiveObject(): void;
   clear(): void;
   renderAll(): void;

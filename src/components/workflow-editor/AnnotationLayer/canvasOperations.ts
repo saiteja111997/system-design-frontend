@@ -3,7 +3,7 @@
  */
 
 import { setCanvasSize } from '../../../utils/annotationUtils';
-import type { FabricCanvas, FabricObject, CanvasConfig, DrawingToolConfig } from './types';
+import type { FabricCanvas, FabricObject, CanvasConfig, DrawingToolConfig, Tool } from './types';
 
 // Robust fabric import supporting both CJS & ESM shapes and preventing SSR usage
 // We keep it sync because this code only runs on client (component has 'use client')
@@ -15,6 +15,11 @@ type FabricNamespace = {
   Canvas: new (el: HTMLCanvasElement, opts: Record<string, unknown>) => FabricCanvas;
   Rect: new (opts: Record<string, unknown>) => FabricObject;
   Circle: new (opts: Record<string, unknown>) => FabricObject;
+  Line: new (coords: number[], opts: Record<string, unknown>) => FabricObject;
+  Triangle: new (opts: Record<string, unknown>) => FabricObject;
+  Group: new (objects: FabricObject[], opts: Record<string, unknown>) => FabricObject;
+  IText: new (text: string, opts: Record<string, unknown>) => FabricObject;
+  Textbox: new (text: string, opts: Record<string, unknown>) => FabricObject;
   PencilBrush?: new (canvas: FabricCanvas) => { width: number; color: string };
 };
 
@@ -171,12 +176,15 @@ export function configureBrush(
 export function applyThemeColors(canvas: FabricCanvas, theme?: 'dark' | 'light') {
   try {
     const cfg = getDefaultDrawingConfig(theme);
-    // Update existing drawable objects (rect, circle, path)
+    // Update existing drawable objects (rect, circle, path, line, text)
     canvas.getObjects().forEach(obj => {
       const t = (obj as unknown as { type?: string }).type;
-      if (t && ['rect','circle','path'].includes(t)) {
+      if (t && ['rect','circle','path','line'].includes(t)) {
         // Safely set stroke if supported
         (obj as unknown as { set: (props: Record<string, unknown>) => void }).set?.({ stroke: cfg.strokeColor });
+      } else if (t && ['i-text','text'].includes(t)) {
+        // For text objects, update fill instead of stroke
+        (obj as unknown as { set: (props: Record<string, unknown>) => void }).set?.({ fill: cfg.strokeColor });
       }
     });
     configureBrush(canvas, cfg);
@@ -234,42 +242,190 @@ export function createCircle(
 }
 
 /**
- * Update canvas mode based on active tool
+ * Create a line shape for drawing
+ */
+export function createLine(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  const LineCtor = ensureFabric('Line');
+  return new LineCtor([x, y, x, y], {
+    stroke: finalConfig.strokeColor,
+    strokeWidth: finalConfig.strokeWidth,
+    selectable: false,
+    evented: false
+  });
+}
+
+/**
+ * Create an arrow shape for drawing
+ * Arrow is a line with arrowhead markers
+ */
+export function createArrow(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  const LineCtor = ensureFabric('Line');
+  const line = new LineCtor([x, y, x, y], {
+    stroke: finalConfig.strokeColor,
+    strokeWidth: finalConfig.strokeWidth,
+    selectable: false,
+    evented: false,
+    // Add arrowhead at the end of the line
+    strokeLineCap: 'round'
+  });
+  
+  // Store arrow metadata to identify it and add arrowhead after drawing
+  (line as unknown as { arrowType?: string; arrowHeadSize?: number }).arrowType = 'arrow';
+  (line as unknown as { arrowType?: string; arrowHeadSize?: number }).arrowHeadSize = 10;
+  
+  return line;
+}
+
+/**
+ * Create a text object for drawing
+ */
+export function createText(
+  x: number, 
+  y: number, 
+  config: Partial<DrawingToolConfig> = {}
+): FabricObject {
+  const finalConfig = { ...getDefaultDrawingConfig(), ...config };
+  
+  // Use Textbox instead of IText for resizable text boxes
+  const TextboxCtor = ensureFabric('Textbox');
+  return new TextboxCtor('', {
+    left: x,
+    top: y,
+    width: 200, // Initial width for the textbox
+    fill: finalConfig.strokeColor,
+    fontSize: 18,
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontWeight: 400,
+    selectable: true,
+    evented: true,
+    editable: true,
+    // Text box behavior
+    splitByGrapheme: true,
+    // Better text rendering
+    lineHeight: 1.4,
+    charSpacing: 0,
+    textAlign: 'left',
+    // Improved appearance
+    opacity: 1,
+    // Interaction
+    lockScalingFlip: true,
+    lockSkewingX: true,
+    lockSkewingY: true,
+    // Only allow horizontal scaling (width adjustment)
+    lockScalingY: true,
+    // Padding for better text area
+    padding: 8,
+    // Borders/controls enabled - visibility managed by selection handlers (see useAnnotationInternal.ts)
+    hasBorders: true,
+    hasControls: true,
+    // Corner style
+    cornerStyle: 'circle',
+    cornerColor: finalConfig.strokeColor,
+    cornerSize: 6,
+    transparentCorners: false,
+    // Border styling - clean and minimal
+    borderColor: finalConfig.strokeColor,
+    borderScaleFactor: 1,
+    // Make corners easier to grab
+    touchCornerSize: 12,
+    // Control positioning
+    centeredScaling: false
+  });
+}
+
+/**
+ * Update the canvas interaction mode based on the active tool
  */
 export function updateCanvasMode(
-  canvas: FabricCanvas, 
-  activeTool: string | null
+  canvas: FabricCanvas,
+  activeTool?: Tool | null
 ): void {
+  // Exit any active text editing before switching tools
+  const activeObjects = canvas.getActiveObjects?.();
+  const activeObject = activeObjects && activeObjects.length > 0 ? activeObjects[0] : null;
+  
+  if (activeObject) {
+    const textObj = activeObject as unknown as { 
+      type?: string; 
+      isEditing?: boolean;
+      exitEditing?: () => void;
+    };
+    
+    // If there's a text object being edited, exit editing mode
+    if ((textObj.type === 'textbox' || textObj.type === 'i-text' || textObj.type === 'text') && textObj.isEditing) {
+      try {
+        textObj.exitEditing?.();
+      } catch (error) {
+        console.warn('[AnnotationLayer] Error exiting text editing:', error);
+      }
+    }
+    
+    // When switching away from text tool, deselect any active object
+    if (activeTool !== 'text' && activeTool !== 'select') {
+      canvas.discardActiveObject?.();
+      canvas.renderAll();
+    }
+  }
+
   // Normalize tool aliases
-  const normalizedTool = (() => {
+  const normalizedTool: "freehand" | "rectangle" | "circle" | "select" | "arrow" | "line" | "text" | null = (() => {
     if (!activeTool) return null;
     if (["freedraw", "freehand", "draw", "brush"].includes(activeTool)) return "freehand";
     if (["rectangle", "rect"].includes(activeTool)) return "rectangle";
     if (["ellipse", "circle"].includes(activeTool)) return "circle";
     if (["select", "selection"].includes(activeTool)) return "select";
-    return activeTool;
+    if (["arrow"].includes(activeTool)) return "arrow";
+    if (["line"].includes(activeTool)) return "line";
+    if (["text"].includes(activeTool)) return "text";
+    return null;
   })();
 
-  // Only drawing tools enable drawing mode
+  // Only freehand drawing enables drawing mode
   if (normalizedTool === "freehand") {
     canvas.isDrawingMode = true;
     canvas.selection = false;
     canvas.skipTargetFind = true;
+    canvas.defaultCursor = 'crosshair';
+  } else if (normalizedTool === "text") {
+    canvas.isDrawingMode = false;
+    canvas.selection = true;
+    canvas.skipTargetFind = false;
+    canvas.defaultCursor = 'text';
+    canvas.hoverCursor = 'text';
   } else {
     canvas.isDrawingMode = false;
     canvas.selection = normalizedTool === "select";
+    // Allow selection for select tool, disable for other drawing tools
     canvas.skipTargetFind = normalizedTool !== "select";
+    canvas.defaultCursor = normalizedTool === "select" ? 'default' : 'crosshair';
+    canvas.hoverCursor = 'move';
   }
   canvas.renderAll();
 }
 
 /**
  * Make a shape selectable and interactive
+ * After finalization, objects can be selected, moved, resized, and rotated with the selection tool
  */
 export function finalizeShape(shape: FabricObject): void {
   shape.set({
     selectable: true,
-    evented: true
+    evented: true,
+    hasBorders: true,
+    hasControls: true,
+    lockScalingFlip: true, // Prevent flipping objects
   });
   shape.setCoords();
 }

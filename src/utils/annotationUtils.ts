@@ -88,25 +88,66 @@ export function serializeCanvas(fabricCanvas: FabricCanvas): CanvasState {
  * @returns Promise that resolves when restoration is complete
  */
 export function restoreCanvas(fabricCanvas: FabricCanvas, serializedData: CanvasState | null): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (!serializedData || !serializedData.canvasData) {
+      console.log('[restoreCanvas] No data to restore, resolving immediately');
       resolve();
       return;
     }
 
-    fabricCanvas.loadFromJSON(serializedData.canvasData, () => {
-      // Restore canvas dimensions if they were stored
-      if (serializedData.canvasSize) {
-        fabricCanvas.setDimensions({
-          width: serializedData.canvasSize.width,
-          height: serializedData.canvasSize.height
-        });
+    let resolved = false; // Flag to prevent multiple resolves
+    
+    // Add a shorter timeout to prevent hanging (Fabric.js sometimes doesn't call callback for empty canvas)
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        console.warn('[restoreCanvas] Fabric.js loadFromJSON callback timeout - using fallback');
+        // Try to at least render with current state
+        try {
+          if (serializedData.canvasSize) {
+            fabricCanvas.setDimensions({
+              width: serializedData.canvasSize.width,
+              height: serializedData.canvasSize.height
+            });
+          }
+          fabricCanvas.renderAll();
+        } catch (e) {
+          console.error('[restoreCanvas] Error in fallback render:', e);
+        }
+        resolve();
       }
-      
-      // Single render call after load completes
-      fabricCanvas.renderAll();
-      resolve();
-    });
+    }, 300); // Reduced from 1000ms to 300ms
+
+    try {
+      fabricCanvas.loadFromJSON(serializedData.canvasData, () => {
+        if (resolved) {
+          // Callback called after timeout - ignore to prevent double execution
+          return;
+        }
+        
+        resolved = true;
+        clearTimeout(timeoutId);
+        
+        // Restore canvas dimensions if they were stored
+        if (serializedData.canvasSize) {
+          fabricCanvas.setDimensions({
+            width: serializedData.canvasSize.width,
+            height: serializedData.canvasSize.height
+          });
+        }
+        
+        // Single render call after load completes
+        fabricCanvas.renderAll();
+        resolve();
+      });
+    } catch (error) {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+        console.error('[restoreCanvas] Error in loadFromJSON:', error);
+        reject(error);
+      }
+    }
   });
 }
 
