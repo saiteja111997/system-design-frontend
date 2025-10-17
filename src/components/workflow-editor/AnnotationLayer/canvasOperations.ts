@@ -417,11 +417,15 @@ export function updateCanvasMode(
 
 /**
  * Make a shape selectable and interactive
+ * After finalization, objects can be selected, moved, resized, and rotated with the selection tool
  */
 export function finalizeShape(shape: FabricObject): void {
   shape.set({
     selectable: true,
-    evented: true
+    evented: true,
+    hasBorders: true,
+    hasControls: true,
+    lockScalingFlip: true, // Prevent flipping objects
   });
   shape.setCoords();
 }

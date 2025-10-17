@@ -252,6 +252,15 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     const pathCreated = (e?: unknown) => {
       // Fabric.js path:created event includes the created path
       if (e && typeof e === 'object' && 'path' in e && e.path) {
+        const path = (e as { path: FabricObject }).path;
+        
+        // Make the freedraw path selectable and movable after creation
+        path.set?.({
+          selectable: true,
+          evented: true
+        });
+        path.setCoords?.();
+        
         // Save immediately after path is created (freedraw complete)
         // Use immediate save to avoid race conditions with undo/redo
         saveToHistoryImmediate();
@@ -281,7 +290,7 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     canvas.on('mouse:move', handleMouseMove);
     canvas.on('mouse:up', handleMouseUp);
     
-    // Handle selection - show controls only when text is selected
+    // Handle selection - show controls when objects are selected
     const handleSelection = (e?: FabricEvent) => {
       const event = e as unknown as { selected?: FabricObject[] };
       if (!event?.selected || !event.selected[0]) return;
@@ -291,7 +300,7 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         set?: (props: Record<string, unknown>) => void;
       };
       
-      // Show borders and controls when text is selected
+      // Show borders and controls when any object is selected (for moving/resizing)
       if (target.type === 'textbox' || target.type === 'i-text' || target.type === 'text') {
         target.set?.({ 
           hasBorders: true,
@@ -299,6 +308,8 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
         });
         canvas.renderAll();
       }
+      // For shapes, borders/controls are already enabled by default
+      // They just need to be selected to show
     };
     
     // Handle deselection - hide controls when text is deselected
