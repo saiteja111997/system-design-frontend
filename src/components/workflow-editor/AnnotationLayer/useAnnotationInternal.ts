@@ -5,7 +5,7 @@ import { createMouseDownHandler, createMouseMoveHandler, createMouseUpHandler } 
 import { createKeyDownHandler } from './keyboardHandlers';
 import { updateCanvasMode, applyThemeColors } from './canvasOperations';
 import { serializeCanvas, restoreCanvas } from '../../../utils/annotationUtils';
-import type { AnnotationLayerProps, AnnotationLayerHandle, FabricEvent } from './types';
+import type { AnnotationLayerProps, AnnotationLayerHandle, FabricEvent, FabricObject } from './types';
 
 // Type alias for cleaner canvas casting
 type AnnotationCanvas = import('../../../utils/annotationUtils').FabricCanvas;
@@ -184,8 +184,44 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
 
   useImperativeHandle(ref, () => handlers, [handlers]);
 
+  // Handle text object creation and editing completion
+  const handleTextCreated = useCallback((textObject: FabricObject) => {
+    if (!canvas) return;
+    
+    // Listen for when text editing is completed
+    const handleEditingExited = (e?: FabricEvent) => {
+      // Only process if this is the text object we're tracking
+      if (e?.target !== textObject) return;
+      
+      const textObj = textObject as unknown as { 
+        text?: string; 
+        set?: (props: Record<string, unknown>) => void;
+        __isPlaceholder?: boolean;
+      };
+      
+      // If text has content, save it
+      if (textObj.text && textObj.text.trim() !== '' && textObj.text !== 'Click to type...') {
+        textObj.set?.({ opacity: 1 });
+        saveToHistoryImmediate(); // Save to history after text is entered
+        canvas.renderAll();
+      }
+      // Note: Empty text removal is now handled in mouseHandlers.ts
+    };
+    
+    // Listen for editing:exited event
+    canvas.on('text:editing:exited', handleEditingExited);
+    
+    // Cleanup when canvas is destroyed
+    return () => {
+      canvas.off('text:editing:exited', handleEditingExited);
+    };
+  }, [canvas, saveToHistoryImmediate]);
+
   // Mouse handlers
-  const handleMouseDown = useCallback((e?: FabricEvent) => { if (!canvas) return; createMouseDownHandler(canvas, activeTool, setDrawingState)(e); }, [canvas, activeTool, setDrawingState]);
+  const handleMouseDown = useCallback((e?: FabricEvent) => { 
+    if (!canvas) return; 
+    createMouseDownHandler(canvas, activeTool, setDrawingState, handleTextCreated)(e); 
+  }, [canvas, activeTool, setDrawingState, handleTextCreated]);
   const handleMouseMove = useCallback((e?: FabricEvent) => { if (!canvas) return; createMouseMoveHandler(canvas, activeTool, drawingState)(e); }, [canvas, activeTool, drawingState]);
   const handleMouseUp = useCallback(() => { if (!canvas) return; createMouseUpHandler(canvas, drawingState, setDrawingState, saveToHistory, onFinish)(); }, [canvas, drawingState, setDrawingState, saveToHistory, onFinish]);
 
@@ -247,10 +283,33 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
     canvas.on('mouse:move', handleMouseMove);
     canvas.on('mouse:up', handleMouseUp);
     
+    // Handle double-click on text objects to enter edit mode
+    const handleDoubleClick = (e?: FabricEvent) => {
+      if (!e?.target) return;
+      
+      const target = e.target as unknown as { 
+        type?: string; 
+        enterEditing?: () => void;
+        selectAll?: () => void;
+      };
+      
+      // If double-clicking a text object, enter edit mode
+      if (target.type === 'i-text' || target.type === 'text') {
+        canvas.setActiveObject(e.target);
+        setTimeout(() => {
+          target.enterEditing?.();
+          canvas.renderAll();
+        }, 50);
+      }
+    };
+    
+    canvas.on('mouse:dblclick', handleDoubleClick);
+    
     return () => {
       canvas.off('mouse:down', handleMouseDown);
       canvas.off('mouse:move', handleMouseMove);
       canvas.off('mouse:up', handleMouseUp);
+      canvas.off('mouse:dblclick', handleDoubleClick);
     };
   }, [canvas, initError, activeTool, handleMouseDown, handleMouseMove, handleMouseUp]);
 

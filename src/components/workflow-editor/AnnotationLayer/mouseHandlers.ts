@@ -25,7 +25,8 @@ import type {
 export function createMouseDownHandler(
   canvas: FabricCanvas,
   activeTool: Tool,
-  setDrawingState: (state: DrawingState | ((prev: DrawingState) => DrawingState)) => void
+  setDrawingState: (state: DrawingState | ((prev: DrawingState) => DrawingState)) => void,
+  onTextCreated?: (textObject: FabricObject) => void
 ) {
   return (e?: FabricEvent<Event>) => {
     if (!e || !activeTool || activeTool === 'select') return;
@@ -37,9 +38,102 @@ export function createMouseDownHandler(
       const textShape = createText(pointer.x, pointer.y);
       canvas.add(textShape);
       canvas.setActiveObject(textShape);
-      // Enter edit mode immediately
-      (textShape as unknown as { enterEditing?: () => void }).enterEditing?.();
-      canvas.renderAll();
+      
+      // Enter edit mode and select all placeholder text for easy replacement
+      const textObj = textShape as unknown as { 
+        enterEditing?: () => void;
+        exitEditing?: () => void;
+        selectAll?: () => void;
+        hiddenTextarea?: HTMLTextAreaElement;
+        text?: string;
+        set?: (props: Record<string, unknown>) => void;
+        __isPlaceholder?: boolean;
+      };
+      
+      // Mark as placeholder
+      textObj.__isPlaceholder = true;
+      
+      // Store cleanup references
+      let timeoutId: NodeJS.Timeout | null = null;
+      let cleanupDone = false;
+      
+      // Cleanup function to remove all listeners and timeouts
+      const cleanup = () => {
+        if (cleanupDone) return;
+        cleanupDone = true;
+        
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        
+        // Remove cleanup listeners
+        canvas.off('object:removed', handleRemoved);
+        canvas.off('text:editing:exited', handleEditingExited);
+        canvas.off('text:changed', handleTextChanged);
+      };
+      
+      // Handle text changes to clear placeholder on first real input
+      const handleTextChanged = () => {
+        if (textObj.__isPlaceholder && textObj.text && textObj.text !== 'Click to type...') {
+          textObj.__isPlaceholder = false;
+          textObj.set?.({ opacity: 1 });
+          canvas.renderAll();
+        }
+      };
+      
+      // Handle object removal (cleanup if deleted before input)
+      const handleRemoved = (e?: FabricEvent) => {
+        if (e?.target === textShape) {
+          cleanup();
+        }
+      };
+      
+      // Handle editing exit - remove if still placeholder and empty
+      const handleEditingExited = () => {
+        // If user exits without typing anything meaningful, remove the text object
+        if (textObj.__isPlaceholder || !textObj.text || textObj.text.trim() === '' || textObj.text === 'Click to type...') {
+          canvas.remove(textShape);
+          canvas.renderAll();
+        } else {
+          // Make fully opaque when done editing
+          textObj.set?.({ opacity: 1 });
+          canvas.renderAll();
+        }
+        cleanup();
+      };
+      
+      // Small delay to ensure text is rendered before entering edit mode
+      timeoutId = setTimeout(() => {
+        timeoutId = null; // Clear reference after timeout fires
+        
+        try {
+          // Enter editing mode
+          textObj.enterEditing?.();
+          
+          // Select all placeholder text immediately
+          if (textObj.hiddenTextarea) {
+            textObj.hiddenTextarea.select();
+          }
+          
+          // Setup cleanup listeners for object lifecycle
+          canvas.on('object:removed', handleRemoved);
+          canvas.on('text:editing:exited', handleEditingExited);
+          canvas.on('text:changed', handleTextChanged);
+          
+        } catch (error) {
+          console.warn('[AnnotationLayer] Failed to enter text edit mode:', error);
+          cleanup();
+        }
+        
+        canvas.renderAll();
+      }, 100); // Slightly longer delay for better stability
+      
+      // Notify parent to save after editing completes
+      if (onTextCreated) {
+        onTextCreated(textShape);
+      }
+      
       return;
     }
 

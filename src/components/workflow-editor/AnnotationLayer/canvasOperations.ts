@@ -298,15 +298,36 @@ export function createText(
   const finalConfig = { ...getDefaultDrawingConfig(), ...config };
   
   const ITextCtor = ensureFabric('IText');
-  return new ITextCtor('Text', {
+  return new ITextCtor('Click to type...', {
     left: x,
     top: y,
     fill: finalConfig.strokeColor,
-    fontSize: 20,
-    fontFamily: 'Arial',
+    fontSize: 18,
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontWeight: 400,
     selectable: true,
     evented: true,
-    editable: true
+    editable: true,
+    // Better text rendering
+    lineHeight: 1.4,
+    charSpacing: 0,
+    // Text box behavior
+    splitByGrapheme: true,
+    // Improved appearance
+    opacity: 0.5,
+    // Better interaction
+    lockScalingFlip: true,
+    // Padding for better click area
+    padding: 4,
+    // Corner style
+    cornerStyle: 'circle',
+    cornerColor: finalConfig.strokeColor,
+    cornerSize: 8,
+    transparentCorners: false,
+    // Border styling
+    borderColor: finalConfig.strokeColor,
+    borderDashArray: [5, 5],
+    borderScaleFactor: 1.5
   });
 }
 
@@ -335,11 +356,20 @@ export function updateCanvasMode(
     canvas.isDrawingMode = true;
     canvas.selection = false;
     canvas.skipTargetFind = true;
+    canvas.defaultCursor = 'crosshair';
+  } else if (normalizedTool === "text") {
+    canvas.isDrawingMode = false;
+    canvas.selection = true;
+    canvas.skipTargetFind = false;
+    canvas.defaultCursor = 'text';
+    canvas.hoverCursor = 'text';
   } else {
     canvas.isDrawingMode = false;
     canvas.selection = normalizedTool === "select";
     // Allow selection for text tool, disable for other drawing tools
     canvas.skipTargetFind = normalizedTool !== "select" && normalizedTool !== "text";
+    canvas.defaultCursor = normalizedTool === "select" ? 'default' : 'crosshair';
+    canvas.hoverCursor = 'move';
   }
   canvas.renderAll();
 }
