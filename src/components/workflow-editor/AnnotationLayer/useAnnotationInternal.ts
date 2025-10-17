@@ -72,10 +72,13 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       } 
     },
     clear: () => { 
-      if (!canvas) return; 
+      if (!canvas || !historyManager) return; 
       canvas.clear(); 
-      canvas.renderAll(); 
-      saveToHistoryImmediate(); // Immediate save for explicit user action
+      canvas.renderAll();
+      // Clear history completely - this action cannot be undone
+      historyManager.clear();
+      // Save the empty state as the new baseline
+      saveToHistoryImmediate();
     },
     undo: async () => { 
       if (!canvas || !historyManager) return;
@@ -89,11 +92,10 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       try {
         undoRedoLockRef.current = true;
         
-        // Suppress BEFORE getting state to prevent race conditions
-        historyManager.suppressNext();
-        
         const state = historyManager.undo(); 
         if (state) {
+          // Suppress saves during restore operation
+          historyManager.suppressNext();
           await restoreCanvas(canvas as AnnotationCanvas, state);
           // Use deferred render for optimized repaint
           deferredRender(canvas as AnnotationCanvas);
@@ -116,11 +118,10 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       try {
         undoRedoLockRef.current = true;
         
-        // Suppress BEFORE getting state to prevent race conditions
-        historyManager.suppressNext();
-        
         const state = historyManager.redo(); 
         if (state) {
+          // Suppress saves during restore operation
+          historyManager.suppressNext();
           await restoreCanvas(canvas as AnnotationCanvas, state);
           // Use deferred render for optimized repaint
           deferredRender(canvas as AnnotationCanvas);
@@ -181,6 +182,28 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
       canvas.off('object:modified', modified); 
     };
   }, [canvas, saveToHistory]);
+
+  // Freedraw path creation history
+  // CRITICAL: Freedraw uses isDrawingMode and creates paths automatically
+  // We need to listen for path:created event to save freedraw to history
+  // Use immediate save (not debounced) to ensure path is captured before undo/redo
+  useEffect(() => {
+    if (!canvas) return;
+    
+    const pathCreated = (e?: unknown) => {
+      // Fabric.js path:created event includes the created path
+      if (e && typeof e === 'object' && 'path' in e && e.path) {
+        // Save immediately after path is created (freedraw complete)
+        // Use immediate save to avoid race conditions with undo/redo
+        saveToHistoryImmediate();
+      }
+    };
+    
+    (canvas as unknown as { on: (event: string, handler: (e?: unknown) => void) => void }).on('path:created', pathCreated);
+    return () => {
+      (canvas as unknown as { off: (event: string, handler: (e?: unknown) => void) => void }).off('path:created', pathCreated);
+    };
+  }, [canvas, saveToHistoryImmediate]);
 
   // Keyboard
   const handleKeyDown = useCallback((e: KeyboardEvent) => { if (!canvas) return; createKeyDownHandler(canvas, activeTool, handlers.undo, handlers.redo)(e); }, [canvas, activeTool, handlers.undo, handlers.redo]);
@@ -249,12 +272,9 @@ export function useAnnotationInternal(props: AnnotationLayerProps, ref: React.Re
   useEffect(() => { 
     if (!canvas || !isReady || initError) return;
     
-    // Use a small delay to ensure initialJSON load has completed
-    const timer = setTimeout(() => {
-      saveToHistoryImmediate();
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    // Save initial state immediately to establish history baseline
+    // This is critical for redo to work after complete undo
+    saveToHistoryImmediate();
   }, [canvas, isReady, initError, saveToHistoryImmediate]);
 
   const retry = useCallback(() => { setInitError(null); try { initializeCanvas(); setIsReady(true);} catch(e){ setInitError(e instanceof Error ? e.message : 'Retry failed'); } }, [initializeCanvas]);

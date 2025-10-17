@@ -11,6 +11,7 @@ import {
   Maximize,
   Undo2,
   Redo2,
+  Trash2,
 } from "lucide-react";
 
 export const canvasDockItems = [
@@ -98,6 +99,13 @@ export const canvasDockItems = [
     tooltip: "Redo (Ctrl+Shift+Z)",
     route: "",
     component: <Redo2 size={14} className="text-slate-700 dark:text-white" />,
+  },
+  {
+    id: "clear-all",
+    name: "ClearAll",
+    tooltip: "Clear All",
+    route: "",
+    component: <Trash2 size={14} className="text-slate-700 dark:text-white" />,
   },
   {
     id: "fullscreen",

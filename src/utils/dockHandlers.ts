@@ -9,6 +9,7 @@ export interface DockItemHandlers {
   handleAnnotationTool: (tool: Tool) => void;
   handleUndo: () => void;
   handleRedo: () => void;
+  handleClearAll: () => void;
 }
 
 export const createDockItemHandlers = (
@@ -20,6 +21,7 @@ export const createDockItemHandlers = (
     setActiveTool: (tool: Tool) => void;
     undo?: () => void;
     redo?: () => void;
+    clearAll?: () => void;
   }
 ): DockItemHandlers => {
   const { zoomIn, zoomOut, resetZoom } = canvasControls;
@@ -32,6 +34,7 @@ export const createDockItemHandlers = (
     handleAnnotationTool: annotationHandlers?.setActiveTool || (() => {}),
     handleUndo: annotationHandlers?.undo || (() => {}),
     handleRedo: annotationHandlers?.redo || (() => {}),
+    handleClearAll: annotationHandlers?.clearAll || (() => {}),
   };
 };
 
@@ -51,6 +54,12 @@ export const handleDockItemClick = (
       break;
     case "redo":
       handlers.handleRedo();
+      break;
+    case "clear-all":
+      // Show confirmation dialog before clearing
+      if (window.confirm("Are you sure you want to clear all annotations? This action cannot be undone.")) {
+        handlers.handleClearAll();
+      }
       break;
     case "fullscreen":
       handlers.handleFullscreen();
