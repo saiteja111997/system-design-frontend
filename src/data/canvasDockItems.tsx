@@ -17,34 +17,6 @@ import {
 
 export const canvasDockItems = [
   {
-    id: "zoom-in",
-    name: "Zoom-in",
-    tooltip: "Zoom-in",
-    route: "",
-    component: <ZoomIn size={14} className="text-slate-700 dark:text-white" />,
-  },
-  {
-    id: "zoom-out",
-    name: "Zoom-out",
-    tooltip: "Zoom-out",
-    route: "",
-    component: <ZoomOut size={14} className="text-slate-700 dark:text-white" />,
-  },
-  {
-    id: "undo",
-    name: "Undo",
-    tooltip: "Undo (Ctrl+Z)",
-    route: "",
-    component: <Undo2 size={14} className="text-slate-700 dark:text-white" />,
-  },
-  {
-    id: "redo",
-    name: "Redo",
-    tooltip: "Redo (Ctrl+Shift+Z)",
-    route: "",
-    component: <Redo2 size={14} className="text-slate-700 dark:text-white" />,
-  },
-  {
     id: "ai-diagram",
     name: "AIDiagram",
     tooltip: "AI Diagram",
@@ -77,6 +49,13 @@ export const canvasDockItems = [
     component: <Circle size={14} className="text-slate-700 dark:text-white" />,
   },
   {
+    id: "free-draw",
+    name: "FreeDraw",
+    tooltip: "Free Draw",
+    route: "",
+    component: <PenTool size={14} className="text-slate-700 dark:text-white" />,
+  },
+  {
     id: "arrow",
     name: "Arrow",
     tooltip: "Arrow",
@@ -93,13 +72,6 @@ export const canvasDockItems = [
     component: <Minus size={14} className="text-slate-700 dark:text-white" />,
   },
   {
-    id: "free-draw",
-    name: "FreeDraw",
-    tooltip: "Free Draw",
-    route: "",
-    component: <PenTool size={14} className="text-slate-700 dark:text-white" />,
-  },
-  {
     id: "text",
     name: "Text",
     tooltip: "Text",
@@ -114,6 +86,20 @@ export const canvasDockItems = [
     component: (
       <MessageSquare size={14} className="text-slate-700 dark:text-white" />
     ),
+  },
+  {
+    id: "undo",
+    name: "Undo",
+    tooltip: "Undo (Ctrl+Z)",
+    route: "",
+    component: <Undo2 size={14} className="text-slate-700 dark:text-white" />,
+  },
+  {
+    id: "redo",
+    name: "Redo",
+    tooltip: "Redo (Ctrl+Shift+Z)",
+    route: "",
+    component: <Redo2 size={14} className="text-slate-700 dark:text-white" />,
   },
   {
     id: "fullscreen",

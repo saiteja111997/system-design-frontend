@@ -67,10 +67,10 @@ const addDefaultConfigurations = (nodes: Node[]): Node[] => {
 
 const baseInitialNodes: Node[] = [
   // Client
-  { id: 1, label: "Client", x: 160, y: 290, type: "start", icon: "Smartphone" },
+  { id: 1, label: "Client", x: 160, y: 330, type: "start", icon: "Smartphone" },
 
   // API Gateway
-  { id: 2, label: "Gateway", x: 320, y: 290, type: "process", icon: "Router" },
+  { id: 2, label: "Gateway", x: 320, y: 330, type: "process", icon: "Router" },
 
   // Services Layer - spread vertically to use more canvas space
   {
@@ -85,7 +85,7 @@ const baseInitialNodes: Node[] = [
     id: 4,
     label: "Order Service",
     x: 480,
-    y: 290,
+    y: 330,
     type: "process",
     icon: "ShoppingCart",
   },
@@ -93,7 +93,7 @@ const baseInitialNodes: Node[] = [
     id: 5,
     label: "Payment",
     x: 480,
-    y: 440,
+    y: 520,
     type: "process",
     icon: "CreditCard",
   },
@@ -104,13 +104,13 @@ const baseInitialNodes: Node[] = [
     id: 7,
     label: "Order LB",
     x: 640,
-    y: 290,
+    y: 330,
     type: "process",
     icon: "Network",
   },
-  { id: 8, label: "Pay LB", x: 640, y: 440, type: "process", icon: "Network" },
+  { id: 8, label: "Pay LB", x: 640, y: 520, type: "process", icon: "Network" },
 
-  // User Service Servers - better vertical distribution
+  // User Service Servers - properly aligned with User Service
   { id: 9, label: "User S1", x: 800, y: 80, type: "process", icon: "Server" },
   {
     id: 10,
@@ -129,12 +129,12 @@ const baseInitialNodes: Node[] = [
     icon: "Server",
   },
 
-  // Order Service Servers - centered around Order Service
+  // Order Service Servers - properly aligned with Order Service
   {
     id: 12,
     label: "Order S1",
     x: 800,
-    y: 230,
+    y: 270,
     type: "process",
     icon: "Server",
   },
@@ -142,7 +142,7 @@ const baseInitialNodes: Node[] = [
     id: 13,
     label: "Order S2",
     x: 800,
-    y: 290,
+    y: 330,
     type: "process",
     icon: "Server",
   },
@@ -150,15 +150,15 @@ const baseInitialNodes: Node[] = [
     id: 14,
     label: "Order S3",
     x: 800,
-    y: 350,
+    y: 390,
     type: "process",
     icon: "Server",
   },
 
-  // Payment Service Servers - bottom tier with good spacing
-  { id: 15, label: "Pay S1", x: 800, y: 380, type: "process", icon: "Server" },
-  { id: 16, label: "Pay S2", x: 800, y: 440, type: "process", icon: "Server" },
-  { id: 17, label: "Pay S3", x: 800, y: 500, type: "process", icon: "Server" },
+  // Payment Service Servers - properly aligned with Payment Service
+  { id: 15, label: "Pay S1", x: 800, y: 460, type: "process", icon: "Server" },
+  { id: 16, label: "Pay S2", x: 800, y: 520, type: "process", icon: "Server" },
+  { id: 17, label: "Pay S3", x: 800, y: 580, type: "process", icon: "Server" },
 
   // Databases - use more horizontal space, aligned with services
   {
@@ -173,7 +173,7 @@ const baseInitialNodes: Node[] = [
     id: 19,
     label: "Order DB",
     x: 960,
-    y: 290,
+    y: 330,
     type: "process",
     icon: "Database",
   },
@@ -181,7 +181,7 @@ const baseInitialNodes: Node[] = [
     id: 20,
     label: "Pay DB",
     x: 960,
-    y: 440,
+    y: 520,
     type: "process",
     icon: "Database",
   },
