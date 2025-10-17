@@ -1,6 +1,6 @@
 import React from "react";
 import { WorkflowEdgeProps } from "@/types/workflow-editor/components";
-import { calculateCurvePath } from "@/utils/workflow";
+import { calculatePortToPortPath } from "@/utils/workflow";
 import { useEdgeAnimation } from "@/hooks/useWorkflowAnimation";
 import "@/styles/workflowAnimations.css";
 
@@ -11,7 +11,7 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
   handlers,
   runCode = false, // Add runCode prop with default false
 }) => {
-  const path = calculateCurvePath(
+  const path = calculatePortToPortPath(
     sourceNode.x,
     sourceNode.y,
     targetNode.x,
@@ -45,16 +45,6 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
           strokeLinecap="round"
         />
       )}
-
-      {/* Arrow */}
-      <path
-        d={path}
-        stroke="none"
-        strokeWidth="2"
-        fill="none"
-        markerEnd="url(#arrowhead)"
-        opacity="0.6"
-      />
     </g>
   );
 };

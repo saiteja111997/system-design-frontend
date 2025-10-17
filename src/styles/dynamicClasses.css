@@ -9,8 +9,11 @@
 /* RPS Color Classes - blue/yellow/red for different load levels */
 @source inline("text-{blue,yellow,red,green}-{400,500}");
 
+/* Icon color classes - comprehensive color palette for node icons */
+@source inline("text-{blue,purple,orange,yellow,red,green,gray,indigo,cyan,emerald,slate,violet,pink}-{400,500,600}");
+
 /* Dark mode text variants */
-@source inline("dark:text-{blue,yellow,red,green}-{400,500}");
+@source inline("dark:text-{blue,yellow,red,green,gray,slate}-{300,400,500}");
 
 /* Background colors for status indicators */
 @source inline("bg-{blue,yellow,red,green}-{50,500,950}");
@@ -23,6 +26,10 @@
 
 /* Border colors */
 @source inline("border-{blue,yellow,red,green}-{200,500,800}");
+
+/* Ring colors for selection states */
+@source inline("ring-{blue,green,red}-{500}");
+@source inline("ring-2");
 
 /* Dark mode border variants */
 @source inline("dark:border-{blue,yellow,red,green}-800");
@@ -47,6 +54,13 @@
 @source inline("{absolute,relative}");
 @source inline("-{top,right}-1");
 
+/* Transition and transform classes */
+@source inline("transition-{all,colors,transform}");
+@source inline("transform");
+@source inline("translate-{x,y}-1/2");
+@source inline("hover:scale-{110}");
+@source inline("active:scale-{105}");
+
 /* Dynamic border width */
 @source inline("border-2");
 
@@ -56,6 +70,7 @@
 /* Custom animation classes defined in workflowAnimations.css */
 @source inline("{animated-edge,animated-edge-yellow,animated-edge-red}");
 @source inline("{database-glow-blue,database-glow-yellow,database-glow-red}");
+@source inline("{icon-database-glow-blue,icon-database-glow-yellow,icon-database-glow-red}");
 @source inline("pulse-dot");
 
 /* Canvas controls and dock navigation classes */
@@ -65,3 +80,15 @@
 @source inline("cursor-{grab,grabbing}");
 @source inline("transform-{gpu}");
 @source inline("scale-{50,75,100,125,150,200}");
+
+/* Shadow and hover effects */
+@source inline("shadow-{md,lg,xl,2xl}");
+@source inline("hover:shadow-{blue,green,red}-500/{50,60}");
+
+/* Gradient classes for ports */
+@source inline("bg-gradient-to-r");
+@source inline("from-{green,blue}-{500}");
+@source inline("to-{emerald,cyan}-{400}");
+
+/* Z-index classes */
+@source inline("z-{10,50}");

@@ -42,6 +42,32 @@ export const calculateCurvePath = (
 };
 
 /**
+ * Calculates quadratic curve path from output port to input port
+ */
+export const calculatePortToPortPath = (
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number
+): string => {
+  // Calculate output port position (right side of source node)
+  const outputPortX = sourceX + 27.5; // Half of node width (55px/2) = 27.5px to the right
+  const outputPortY = sourceY;
+
+  // Calculate input port position (left side of target node)
+  const inputPortX = targetX - 27.5; // Half of node width (55px/2) = 27.5px to the left
+  const inputPortY = targetY;
+
+  // Calculate control points for smooth curve
+  const dx = inputPortX - outputPortX;
+  const dy = inputPortY - outputPortY;
+  const controlX = outputPortX + dx * 0.5;
+  const controlY = outputPortY + dy * 0.5 + Math.abs(dx) * 0.2;
+
+  return `M${outputPortX},${outputPortY} Q${controlX},${controlY} ${inputPortX},${inputPortY}`;
+};
+
+/**
  * Checks if an edge already exists between two nodes
  */
 export const edgeExists = (

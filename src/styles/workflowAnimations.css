@@ -148,6 +148,62 @@
   animation: databaseGlowRed 0.6s ease-in-out infinite;
 }
 
+/* Database icon glow classes */
+.icon-database-glow-blue {
+  filter: drop-shadow(0 0 3px rgba(14, 165, 233, 0.7))
+    drop-shadow(0 0 8px rgba(14, 165, 233, 0.5));
+  animation: iconGlowBlue 1.5s ease-in-out infinite;
+}
+
+.icon-database-glow-yellow {
+  filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.7))
+    drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
+  animation: iconGlowYellow 1s ease-in-out infinite;
+}
+
+.icon-database-glow-red {
+  filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.7))
+    drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
+  animation: iconGlowRed 0.6s ease-in-out infinite;
+}
+
+/* Icon glow animations */
+@keyframes iconGlowBlue {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(14, 165, 233, 0.7))
+      drop-shadow(0 0 8px rgba(14, 165, 233, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(14, 165, 233, 1))
+      drop-shadow(0 0 15px rgba(14, 165, 233, 0.8));
+  }
+}
+
+@keyframes iconGlowYellow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.7))
+      drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(250, 204, 21, 1))
+      drop-shadow(0 0 15px rgba(250, 204, 21, 0.8));
+  }
+}
+
+@keyframes iconGlowRed {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.7))
+      drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(220, 38, 38, 1))
+      drop-shadow(0 0 15px rgba(220, 38, 38, 0.8));
+  }
+}
+
 /* Pulse dot class */
 .pulse-dot {
   animation: dotPulse 1.5s ease-in-out infinite;
