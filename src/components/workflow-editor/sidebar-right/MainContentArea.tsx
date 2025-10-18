@@ -53,12 +53,7 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
   return (
     <div className="flex-1 p-4 relative overflow-y-auto">
       {/* Collapsed State */}
-      {!sidebarExpanded && (
-        <CollapsedState
-          requestsPerSecond={requestsPerSecond}
-          onTabChange={onTabChange}
-        />
-      )}
+      {!sidebarExpanded && <CollapsedState onTabChange={onTabChange} />}
 
       {/* Expanded Content */}
       <motion.div

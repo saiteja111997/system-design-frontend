@@ -84,7 +84,6 @@ export interface MetricsContentProps {
 
 // Collapsed State Props
 export interface CollapsedStateProps {
-  requestsPerSecond: number;
   onTabChange: (tabId: string) => void;
 }
 

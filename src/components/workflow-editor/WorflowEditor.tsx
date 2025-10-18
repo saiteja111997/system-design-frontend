@@ -24,6 +24,16 @@ import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
 import ZoomIndicator from "./ZoomIndicator";
 import { AnnotationLayer, type Tool } from "./AnnotationLayer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import "@/styles/workflowAnimations.css";
 
 const WorkflowEditorContent: React.FC = () => {
@@ -31,13 +41,23 @@ const WorkflowEditorContent: React.FC = () => {
   const annotationLayerRef = useRef<
     import("./AnnotationLayer").AnnotationLayerHandle | null
   >(null);
-  const [annotationSnapshot, setAnnotationSnapshot] =
-    useState<CanvasState | null>(null);
-  // Store entire history stack for proper undo/redo across transitions
-  const [annotationHistory, setAnnotationHistory] = useState<{
+
+  // Use refs to store annotation state to avoid unnecessary effect re-runs
+  const annotationSnapshotRef = useRef<CanvasState | null>(null);
+  const annotationHistoryRef = useRef<{
     history: CanvasState[];
     currentIndex: number;
   } | null>(null);
+
+  // Keep state for initial load, but use refs for updates
+  const [annotationSnapshot, setAnnotationSnapshot] =
+    useState<CanvasState | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_annotationHistory, setAnnotationHistory] = useState<{
+    history: CanvasState[];
+    currentIndex: number;
+  } | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
@@ -45,105 +65,155 @@ const WorkflowEditorContent: React.FC = () => {
 
   /**
    * Handle annotation persistence across fullscreen transitions
-   * Strategy: Save BOTH snapshot AND history BEFORE fullscreen state changes,
-   * then restore AFTER canvas is fully mounted and ready in the new state
+   * Only depends on isFullscreen to avoid unnecessary re-runs
+   * Reads latest state from refs instead of state dependencies
    */
   useEffect(() => {
-    // Only run when fullscreen state actually changes
     const currentRef = annotationLayerRef.current;
-
     if (!currentRef) return;
 
-    if (isFullscreen) {
-      // Entering fullscreen: Restore the previously saved snapshot AND history
-      // Use setTimeout to ensure canvas is fully mounted and ready
-      const timer = setTimeout(() => {
-        if (annotationLayerRef.current) {
-          // First try to restore the history stack
-          if (annotationHistory) {
-            try {
-              annotationLayerRef.current.importHistory(annotationHistory);
-            } catch (error) {
-              console.error(
-                "[WorkflowEditor] Failed to restore history on fullscreen enter:",
-                error
-              );
-              // Fallback: if history import fails, try loading the snapshot
-              if (annotationSnapshot) {
-                annotationLayerRef.current
-                  .load(annotationSnapshot)
-                  .then(() => {
-                    // Always force redraw after restore
-                    const canvas = annotationLayerRef.current?.getCanvas();
-                    canvas?.renderAll();
-                  })
-                  .catch((fallbackError) => {
-                    console.error(
-                      "[WorkflowEditor] Failed to restore annotations on fullscreen enter (fallback):",
-                      fallbackError
-                    );
-                  });
-              }
-            }
-          } else if (annotationSnapshot) {
-            // Fallback: if no history, just load the snapshot
-            annotationLayerRef.current
-              .load(annotationSnapshot)
-              .then(() => {
-                // Always force redraw after restore
-                const canvas = annotationLayerRef.current?.getCanvas();
-                canvas?.renderAll();
-              })
-              .catch((error) => {
-                console.error(
-                  "[WorkflowEditor] Failed to restore annotations on fullscreen enter:",
-                  error
-                );
-              });
-          }
-        }
-      }, 150); // Small delay to ensure canvas initialization completes
+    // Small delay to ensure canvas is ready after mode change
+    const timer = setTimeout(() => {
+      if (annotationLayerRef.current) {
+        // Read latest values from refs (updated by auto-save)
+        const latestHistory = annotationHistoryRef.current;
+        const latestSnapshot = annotationSnapshotRef.current;
 
-      return () => clearTimeout(timer);
-    }
-    // Note: Exiting fullscreen is handled by the save function below
-  }, [isFullscreen, annotationSnapshot, annotationHistory]);
+        // Restore history if available
+        if (latestHistory) {
+          try {
+            annotationLayerRef.current.importHistory(latestHistory);
+            const canvas = annotationLayerRef.current?.getCanvas();
+            canvas?.renderAll();
+          } catch (error) {
+            console.error("[WorkflowEditor] Failed to restore history:", error);
+            // Fallback to snapshot
+            if (latestSnapshot) {
+              annotationLayerRef.current
+                .load(latestSnapshot)
+                .then(() => {
+                  const canvas = annotationLayerRef.current?.getCanvas();
+                  canvas?.renderAll();
+                })
+                .catch((err) =>
+                  console.error(
+                    "[WorkflowEditor] Fallback restore failed:",
+                    err
+                  )
+                );
+            }
+          }
+        } else if (latestSnapshot) {
+          // No history, use snapshot
+          annotationLayerRef.current
+            .load(latestSnapshot)
+            .then(() => {
+              const canvas = annotationLayerRef.current?.getCanvas();
+              canvas?.renderAll();
+            })
+            .catch((error) =>
+              console.error("[WorkflowEditor] Snapshot restore failed:", error)
+            );
+        }
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [isFullscreen]); // Only depend on isFullscreen, not snapshot/history
 
   /**
-   * Save annotation state before any fullscreen transition
-   * This runs synchronously before the fullscreen change propagates
+   * Continuously sync annotation state to refs
+   * This ensures state is always current regardless of how fullscreen is toggled
    */
-  const handleFullscreenToggle = useCallback(() => {
-    // Save current state AND history immediately before transition
+  useEffect(() => {
+    if (!annotationLayerRef.current) return;
+
+    // Auto-save state periodically and on changes
+    const saveCurrentState = () => {
+      if (annotationLayerRef.current) {
+        try {
+          const snapshot = annotationLayerRef.current.snapshot();
+          const history = annotationLayerRef.current.exportHistory();
+
+          // Update refs for restoration effect to read
+          if (snapshot) {
+            annotationSnapshotRef.current = snapshot;
+            setAnnotationSnapshot(snapshot); // Keep state for initial load
+          }
+          if (history) {
+            annotationHistoryRef.current = history;
+            setAnnotationHistory(history); // Keep state for initial load
+          }
+        } catch (error) {
+          console.error(
+            "[WorkflowEditor] Failed to auto-save annotation state:",
+            error
+          );
+        }
+      }
+    };
+
+    // Save on a regular interval to catch all changes
+    const interval = setInterval(saveCurrentState, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  /**
+   * Save annotation state before ANY fullscreen transition
+   */
+  const saveAnnotationState = useCallback(() => {
     if (annotationLayerRef.current) {
       try {
-        // Save current canvas snapshot (for fallback)
         const snapshot = annotationLayerRef.current.snapshot();
+        const history = annotationLayerRef.current.exportHistory();
+
+        // Update refs for restoration effect to read
         if (snapshot) {
+          annotationSnapshotRef.current = snapshot;
           setAnnotationSnapshot(snapshot);
         }
-
-        // Save entire history stack (for undo/redo preservation)
-        const history = annotationLayerRef.current.exportHistory();
         if (history) {
+          annotationHistoryRef.current = history;
           setAnnotationHistory(history);
         }
       } catch (error) {
-        console.error(
-          "[WorkflowEditor] Failed to save annotations before fullscreen toggle:",
-          error
-        );
+        console.error("[WorkflowEditor] Failed to save annotations:", error);
       }
     }
+  }, []);
 
-    // Proceed with fullscreen toggle
+  /**
+   * Handle fullscreen toggle - save first, then toggle
+   */
+  const handleFullscreenToggle = useCallback(() => {
+    saveAnnotationState();
     toggleFullscreen();
-  }, [toggleFullscreen]);
+  }, [saveAnnotationState, toggleFullscreen]);
+
+  /**
+   * Handle fullscreen exit - save first, then exit
+   */
+  const handleExitFullscreen = useCallback(() => {
+    saveAnnotationState();
+    exitFullscreen();
+  }, [saveAnnotationState, exitFullscreen]);
 
   // Annotation state
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [isAnnotationLayerVisible, setIsAnnotationLayerVisible] =
     useState(false);
+
+  // Clear confirmation dialog state
+  const [showClearDialog, setShowClearDialog] = useState(false);
+
+  // Handle confirmed clear action
+  const handleConfirmedClear = useCallback(() => {
+    annotationLayerRef.current?.clear();
+    // Save state after clear
+    saveAnnotationState();
+    setShowClearDialog(false);
+  }, [saveAnnotationState]);
 
   // Canvas controls - now properly inside CanvasControlsProvider
   const canvasControls = useCanvasControlsContext();
@@ -160,12 +230,17 @@ const WorkflowEditorContent: React.FC = () => {
       },
       undo: () => {
         annotationLayerRef.current?.undo();
+        // Save state after undo
+        saveAnnotationState();
       },
       redo: () => {
         annotationLayerRef.current?.redo();
+        // Save state after redo
+        saveAnnotationState();
       },
       clearAll: () => {
-        annotationLayerRef.current?.clear();
+        // Show confirmation dialog instead of clearing immediately
+        setShowClearDialog(true);
       },
     }
   );
@@ -321,6 +396,25 @@ const WorkflowEditorContent: React.FC = () => {
 
   return (
     <>
+      {/* Clear All Confirmation Dialog - Always render at top level with high z-index */}
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear All Drawings?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your drawings on the canvas. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedClear}>
+              Clear All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Normal workflow content */}
       {!isFullscreen && workflowContent}
 
@@ -330,7 +424,7 @@ const WorkflowEditorContent: React.FC = () => {
           <div className="fixed inset-0 z-[9999] bg-white dark:bg-slate-950">
             {/* Exit fullscreen button */}
             <button
-              onClick={exitFullscreen}
+              onClick={handleExitFullscreen}
               className="fixed top-6 left-24 z-[10000] w-10 h-10 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
               title="Exit Fullscreen"
             >

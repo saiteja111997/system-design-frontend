@@ -56,10 +56,8 @@ export const handleDockItemClick = (
       handlers.handleRedo();
       break;
     case "clear-all":
-      // Show confirmation dialog before clearing
-      if (window.confirm("Are you sure you want to clear all annotations? This action cannot be undone.")) {
-        handlers.handleClearAll();
-      }
+      // Confirmation is now handled in the WorkflowEditor component via AlertDialog
+      handlers.handleClearAll();
       break;
     case "fullscreen":
       handlers.handleFullscreen();
