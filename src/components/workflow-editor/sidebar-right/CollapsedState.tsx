@@ -1,27 +1,46 @@
 import React from "react";
 import { motion } from "framer-motion";
-import DockNavigation from "../DockNavigation";
 import { sidebarDockItems } from "@/data/sidebarDockItems";
 import { CollapsedStateProps } from "@/types/workflow-editor/sidebar-right";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 const CollapsedState: React.FC<CollapsedStateProps> = ({ onTabChange }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center space-y-4"
+      className="flex flex-col items-center space-y-2 py-4"
     >
-      {/* Vertical Navigation */}
-      <div className="mb-4">
-        <DockNavigation
-          direction="vertical"
-          tooltipPosition="left"
-          collapsible={false}
-          items={sidebarDockItems}
-          onItemClick={(itemId: string) => onTabChange(itemId)}
-          activeItem={null} // No active item when collapsed
-        />
-      </div>
+      {/* Vertical Navigation with Tooltips */}
+      {sidebarDockItems.map((item, index) => (
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 + index * 0.05, duration: 0.3 }}
+        >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-12 h-12 p-0 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                onClick={() => onTabChange(item.id)}
+                aria-label={item.tooltip}
+              >
+                {item.component}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" sideOffset={8}>
+              {item.tooltip}
+            </TooltipContent>
+          </Tooltip>
+        </motion.div>
+      ))}
     </motion.div>
   );
 };
