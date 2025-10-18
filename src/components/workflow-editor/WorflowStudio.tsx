@@ -24,6 +24,16 @@ import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
 import ZoomIndicator from "./ZoomIndicator";
 import { type Tool } from "./AnnotationLayer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import "@/styles/workflowAnimations.css";
 
 const WorkflowEditorContent: React.FC = () => {
@@ -44,6 +54,10 @@ const WorkflowEditorContent: React.FC = () => {
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [isAnnotationLayerVisible, setIsAnnotationLayerVisible] =
     useState(false);
+
+  // Clear confirmation dialog state
+  const [showClearDialog, setShowClearDialog] = useState(false);
+
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
     useFullscreenContext();
 
@@ -144,6 +158,12 @@ const WorkflowEditorContent: React.FC = () => {
     toggleFullscreen();
   }, [toggleFullscreen]);
 
+  // Handle confirmed clear action
+  const handleConfirmedClear = useCallback(() => {
+    annotationLayerRef.current?.clear();
+    setShowClearDialog(false);
+  }, []);
+
   // Canvas controls - clean and simple!
   const canvasControls = useCanvasControlsContext();
   const dockHandlers = createDockItemHandlers(
@@ -164,7 +184,8 @@ const WorkflowEditorContent: React.FC = () => {
         annotationLayerRef.current?.redo();
       },
       clearAll: () => {
-        annotationLayerRef.current?.clear();
+        // Show confirmation dialog instead of clearing immediately
+        setShowClearDialog(true);
       },
     }
   );
@@ -301,6 +322,25 @@ const WorkflowEditorContent: React.FC = () => {
 
   return (
     <>
+      {/* Clear All Confirmation Dialog - Always render at top level with high z-index */}
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear All Drawings?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your drawings on the canvas. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedClear}>
+              Clear All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Normal workflow content */}
       {!isFullscreen && workflowContent}
 
