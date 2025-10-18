@@ -23,23 +23,27 @@ import SidebarRight from "./sidebar-right/SidebarRight";
 import DockNavigation from "./DockNavigation";
 import RunButton from "./RunButton";
 import ZoomIndicator from "./ZoomIndicator";
-import { AnnotationLayer, type Tool } from "./AnnotationLayer";
+import { type Tool } from "./AnnotationLayer";
 import "@/styles/workflowAnimations.css";
 
 const WorkflowEditorContent: React.FC = () => {
-  // Annotation persistence across fullscreen
-  const annotationLayerRef = useRef<
-    import("./AnnotationLayer").AnnotationLayerHandle | null
-  >(null);
-  const [annotationSnapshot, setAnnotationSnapshot] =
-    useState<CanvasState | null>(null);
   // Store entire history stack for proper undo/redo across transitions
   const [annotationHistory, setAnnotationHistory] = useState<{
     history: CanvasState[];
     currentIndex: number;
   } | null>(null);
+  const [annotationSnapshot, setAnnotationSnapshot] =
+    useState<CanvasState | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const annotationLayerRef = useRef<
+    import("./AnnotationLayer").AnnotationLayerHandle | null
+  >(null);
+
+  // Simple annotation state - back to clean approach!
+  const [activeTool, setActiveTool] = useState<Tool>("select");
+  const [isAnnotationLayerVisible, setIsAnnotationLayerVisible] =
+    useState(false);
   const { isFullscreen, exitFullscreen, toggleFullscreen } =
     useFullscreenContext();
 
@@ -50,9 +54,9 @@ const WorkflowEditorContent: React.FC = () => {
    */
   useEffect(() => {
     // Only run when fullscreen state actually changes
-    const currentRef = annotationLayerRef.current;
+    const currentAnnotationRef = annotationLayerRef.current;
 
-    if (!currentRef) return;
+    if (!currentAnnotationRef) return;
 
     if (isFullscreen) {
       // Entering fullscreen: Restore the previously saved snapshot AND history
@@ -65,7 +69,7 @@ const WorkflowEditorContent: React.FC = () => {
               annotationLayerRef.current.importHistory(annotationHistory);
             } catch (error) {
               console.error(
-                "[WorkflowEditor] Failed to restore history on fullscreen enter:",
+                "[WorkflowStudio] Failed to restore history on fullscreen enter:",
                 error
               );
               // Fallback: if history import fails, try loading the snapshot
@@ -77,9 +81,9 @@ const WorkflowEditorContent: React.FC = () => {
                     const canvas = annotationLayerRef.current?.getCanvas();
                     canvas?.renderAll();
                   })
-                  .catch((fallbackError) => {
+                  .catch((fallbackError: unknown) => {
                     console.error(
-                      "[WorkflowEditor] Failed to restore annotations on fullscreen enter (fallback):",
+                      "[WorkflowStudio] Failed to restore annotations on fullscreen enter (fallback):",
                       fallbackError
                     );
                   });
@@ -94,9 +98,9 @@ const WorkflowEditorContent: React.FC = () => {
                 const canvas = annotationLayerRef.current?.getCanvas();
                 canvas?.renderAll();
               })
-              .catch((error) => {
+              .catch((error: unknown) => {
                 console.error(
-                  "[WorkflowEditor] Failed to restore annotations on fullscreen enter:",
+                  "[WorkflowStudio] Failed to restore annotations on fullscreen enter:",
                   error
                 );
               });
@@ -130,7 +134,7 @@ const WorkflowEditorContent: React.FC = () => {
         }
       } catch (error) {
         console.error(
-          "[WorkflowEditor] Failed to save annotations before fullscreen toggle:",
+          "[WorkflowStudio] Failed to save annotations before fullscreen toggle:",
           error
         );
       }
@@ -140,16 +144,11 @@ const WorkflowEditorContent: React.FC = () => {
     toggleFullscreen();
   }, [toggleFullscreen]);
 
-  // Annotation state
-  const [activeTool, setActiveTool] = useState<Tool>("select");
-  const [isAnnotationLayerVisible, setIsAnnotationLayerVisible] =
-    useState(false);
-
-  // Canvas controls - now properly inside CanvasControlsProvider
+  // Canvas controls - clean and simple!
   const canvasControls = useCanvasControlsContext();
   const dockHandlers = createDockItemHandlers(
     canvasControls,
-    { toggleFullscreen: handleFullscreenToggle }, // Use our wrapped version that saves state
+    { toggleFullscreen: handleFullscreenToggle },
     {
       setActiveTool: (tool: Tool) => {
         setActiveTool(tool);
@@ -248,32 +247,13 @@ const WorkflowEditorContent: React.FC = () => {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               runCode={runCode}
+              activeTool={activeTool}
+              isAnnotationLayerVisible={isAnnotationLayerVisible}
+              annotationSnapshot={annotationSnapshot}
+              annotationLayerRef={annotationLayerRef}
+              onAnnotationToolChange={setActiveTool}
+              onAnnotationSnapshotChange={setAnnotationSnapshot}
             />
-
-            {/* Annotation Layer Overlay */}
-            {isAnnotationLayerVisible && (
-              <div className="absolute inset-0 z-10 pointer-events-none">
-                <AnnotationLayer
-                  ref={annotationLayerRef}
-                  activeTool={activeTool}
-                  onFinish={() => {
-                    setActiveTool("select");
-                  }}
-                  initialJSON={annotationSnapshot}
-                  className="pointer-events-auto"
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    // Keep pointer-events auto to allow selecting/moving saved objects
-                    // pointerEvents: "auto",
-                    pointerEvents: activeTool === "select" ? "none" : "auto",
-                  }}
-                />
-              </div>
-            )}
 
             {/* Dock Navigation - positioned in top-left of workflow editor */}
             <DockNavigation

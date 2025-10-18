@@ -15,15 +15,15 @@ import {
 } from "lucide-react";
 
 export const canvasDockItems = [
-  {
-    id: "ai-diagram",
-    name: "AIDiagram",
-    tooltip: "AI Diagram",
-    route: "",
-    component: (
-      <Sparkles size={14} className="text-slate-700 dark:text-white" />
-    ),
-  },
+  // {
+  //   id: "ai-diagram",
+  //   name: "AIDiagram",
+  //   tooltip: "AI Diagram",
+  //   route: "",
+  //   component: (
+  //     <Sparkles size={14} className="text-slate-700 dark:text-white" />
+  //   ),
+  // },
   {
     id: "selection-tool",
     name: "SelectionTool",

@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ZoomIndicatorProps {
   currentZoom: number;
@@ -59,7 +60,10 @@ export const ZoomIndicator: React.FC<ZoomIndicatorProps> = ({
   const zoomPercentage = Math.round(currentZoom * 100);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2 }}
       className={cn(
         "flex flex-col items-center gap-3 bg-white/20 dark:bg-slate-900/10 backdrop-blur-md border border-slate-900/20 dark:border-white/10 rounded-xl p-4 shadow-lg dark:shadow-2xl w-14",
         className
@@ -133,7 +137,7 @@ export const ZoomIndicator: React.FC<ZoomIndicatorProps> = ({
           <RotateCcw size={14} className="text-slate-700 dark:text-white" />
         </button>
       )}
-    </div>
+    </motion.div>
   );
 };
 

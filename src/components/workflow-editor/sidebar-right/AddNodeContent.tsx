@@ -8,13 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  nodeTypeOptions,
-  nodeCategories,
-  nodePositionTypes,
-  getNodeTypeConfiguration,
-  getDefaultConfigurationValues,
-} from "@/data/nodeTypeOptions";
+import { nodeOptions, nodeCategories, nodeTypes } from "@/data/nodeTypeOptions";
 import { AddNodeContentProps } from "@/types/workflow-editor/sidebar-right";
 import ConfigurationForm from "./ConfigurationForm";
 
@@ -29,8 +23,18 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
   // Load default configurations when node type changes
   useEffect(() => {
     if (selectedNewNodeType) {
-      const defaultValues = getDefaultConfigurationValues(selectedNewNodeType);
-      setConfigurations(defaultValues);
+      const nodeOption = nodeOptions.find(
+        (option) => option.id === selectedNewNodeType
+      );
+      if (nodeOption?.configurations) {
+        const defaultValues: Record<string, string | number | boolean> = {};
+        Object.values(nodeOption.configurations).forEach((field) => {
+          defaultValues[field.key] = field.defaultValue;
+        });
+        setConfigurations(defaultValues);
+      } else {
+        setConfigurations({});
+      }
     } else {
       setConfigurations({});
     }
@@ -64,7 +68,7 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
 
   const handleAddNode = () => {
     if (selectedNewNodeType && selectedPositionType) {
-      const nodeType = nodeTypeOptions.find(
+      const nodeType = nodeOptions.find(
         (type) => type.id === selectedNewNodeType
       );
 
@@ -89,9 +93,7 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
 
   // Get filtered node types based on selected category
   const filteredNodeTypes = selectedCategory
-    ? nodeTypeOptions.filter(
-        (nodeType) => nodeType.category === selectedCategory
-      )
+    ? nodeOptions.filter((nodeType) => nodeType.category === selectedCategory)
     : [];
 
   // Check if all three dropdowns are selected
@@ -161,7 +163,7 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
             Step 3: Choose Position
           </h3>
           <div className="grid grid-cols-1 gap-3">
-            {nodePositionTypes.map((position) => (
+            {nodeTypes.map((position) => (
               <Button
                 key={position.id}
                 variant={
@@ -183,7 +185,10 @@ const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {
       {selectedNewNodeType &&
         selectedPositionType &&
         (() => {
-          const nodeConfig = getNodeTypeConfiguration(selectedNewNodeType);
+          const nodeOption = nodeOptions.find(
+            (option) => option.id === selectedNewNodeType
+          );
+          const nodeConfig = nodeOption?.configurations;
           return (
             nodeConfig && (
               <div className="space-y-4">

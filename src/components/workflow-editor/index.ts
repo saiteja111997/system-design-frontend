@@ -1,11 +1,11 @@
 export { WorkflowHeader } from "./WorkflowHeader";
 export { WorkflowCanvas } from "./WorkflowCanvas";
+export { WorkflowLayer } from "./WorkflowLayer";
 export { WorkflowFooter } from "./WorkflowFooter";
 export { WorkflowNode } from "./WorkflowNode";
 export { WorkflowEdge } from "./WorkflowEdge";
 export { CanvasGrid } from "./CanvasGrid";
 export { SvgDefinitions } from "./SvgDefinitions";
 export { TempConnectionLine } from "./TempConnectionLine";
-export { WorkflowEditorSummary } from "./WorkflowEditorSummary";
 export { GlowWrapper } from "./GlowWrapper";
 export { useWorkflowInteractions } from "@/hooks/useWorkflowInteractions";

@@ -1,14 +1,28 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect } from "react";
 import { WorkflowCanvasProps } from "@/types/workflow-editor/components";
+import { WorkflowLayer } from "./WorkflowLayer";
 import { CanvasGrid } from "./CanvasGrid";
-import { SvgDefinitions } from "./SvgDefinitions";
-import { WorkflowNode } from "./WorkflowNode";
-import { WorkflowEdge } from "./WorkflowEdge";
-import { TempConnectionLine } from "./TempConnectionLine";
-import { useWorkflowAnimation } from "@/hooks/useWorkflowAnimation";
+import { AnnotationLayer, type Tool } from "./AnnotationLayer";
+import type { CanvasState } from "@/utils/annotationUtils";
 import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
+import { motion } from "framer-motion";
 
-export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
+interface WorkflowCanvasWithAnnotationProps extends WorkflowCanvasProps {
+  // Simple annotation props - no complexity!
+  activeTool?: Tool;
+  isAnnotationLayerVisible?: boolean;
+  annotationSnapshot?: CanvasState | null;
+  annotationLayerRef?: React.RefObject<
+    import("./AnnotationLayer").AnnotationLayerHandle | null
+  >;
+  onAnnotationToolChange?: (tool: Tool) => void;
+  onAnnotationSnapshotChange?: (snapshot: CanvasState | null) => void;
+}
+
+export const WorkflowCanvas = forwardRef<
+  HTMLDivElement,
+  WorkflowCanvasWithAnnotationProps
+>(
   (
     {
       nodes,
@@ -20,11 +34,17 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       edgeHandlers,
       onMouseMove,
       onMouseUp,
-      runCode = false, // Add runCode prop with default false
+      runCode = false,
+      // Simple annotation props
+      activeTool = "select",
+      isAnnotationLayerVisible = false,
+      annotationSnapshot = null,
+      annotationLayerRef,
+      onAnnotationToolChange,
+      onAnnotationSnapshotChange,
     },
     ref
   ) => {
-    const { globalAnimationStyle } = useWorkflowAnimation();
     const {
       handlePanStart,
       handlePanMove,
@@ -33,31 +53,41 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       handleTouchMove,
       handleTouchEnd,
       handleWheel,
-      getTransformStyle,
     } = useCanvasControlsContext();
 
     const handleMouseDown = (event: React.MouseEvent) => {
+      // Don't start panning if annotation layer is active and not in select mode
+      if (isAnnotationLayerVisible && activeTool !== "select") {
+        return;
+      }
       handlePanStart(event);
     };
 
     const handleMouseMoveCanvas = (event: React.MouseEvent) => {
+      // Don't pan if annotation layer is active and not in select mode
+      if (isAnnotationLayerVisible && activeTool !== "select") {
+        onMouseMove?.(event);
+        return;
+      }
       handlePanMove(event);
       onMouseMove?.(event);
     };
 
     const handleMouseUpCanvas = () => {
+      // Don't end panning if annotation layer is active and not in select mode
+      if (isAnnotationLayerVisible && activeTool !== "select") {
+        onMouseUp?.();
+        return;
+      }
       handlePanEnd();
       onMouseUp?.();
     };
 
     // Attach native touch listeners with passive: false for preventDefault
-
-    React.useEffect(() => {
+    useEffect(() => {
       const canvasDiv = ref && typeof ref !== "function" ? ref.current : null;
       if (!canvasDiv) return;
-      // Wrap native event to call React handler
-      // Fabric.js and React expect slightly different event types; we only need touches and preventDefault
-      // This wrapper passes the native event to the React handler, which only uses touches and preventDefault
+
       const nativeTouchStart = (e: TouchEvent) => {
         // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
         handleTouchStart(e);
@@ -70,6 +100,7 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
         // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
         handleTouchEnd(e);
       };
+
       canvasDiv.addEventListener("touchstart", nativeTouchStart, {
         passive: false,
       });
@@ -79,6 +110,7 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
       canvasDiv.addEventListener("touchend", nativeTouchEnd, {
         passive: false,
       });
+
       return () => {
         canvasDiv.removeEventListener("touchstart", nativeTouchStart);
         canvasDiv.removeEventListener("touchmove", nativeTouchMove);
@@ -87,66 +119,76 @@ export const WorkflowCanvas = forwardRef<HTMLDivElement, WorkflowCanvasProps>(
     }, [ref, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
     return (
-      <div
+      <motion.div
         ref={ref}
         data-canvas-area="true"
-        className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className={`flex-1 relative overflow-hidden ${
+          isAnnotationLayerVisible && activeTool !== "select"
+            ? "cursor-crosshair"
+            : "cursor-grab active:cursor-grabbing"
+        } bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMoveCanvas}
         onMouseUp={handleMouseUpCanvas}
-        onWheel={handleWheel}
-        style={globalAnimationStyle}
+        onWheel={(e) => {
+          // Don't zoom if annotation layer is active and not in select mode
+          if (isAnnotationLayerVisible && activeTool !== "select") {
+            return;
+          }
+          handleWheel(e);
+        }}
       >
-        {/* Fixed grid that doesn't zoom */}
+        {/* Fixed background grid */}
         <CanvasGrid />
-
-        {/* SVG for edges - positioned to match transformed content */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          <defs>
-            <SvgDefinitions />
-          </defs>
-          <g style={getTransformStyle()}>
-            {/* Existing edges */}
-            {edges.map((edge) => {
-              const sourceNode = nodes.find((n) => n.id === edge.source);
-              const targetNode = nodes.find((n) => n.id === edge.target);
-
-              if (!sourceNode || !targetNode) return null;
-
-              return (
-                <WorkflowEdge
-                  key={edge.id}
-                  edge={edge}
-                  sourceNode={sourceNode}
-                  targetNode={targetNode}
-                  handlers={edgeHandlers}
-                  runCode={runCode}
-                />
-              );
-            })}
-
-            {/* Temporary connection line */}
-            {tempLine && <TempConnectionLine tempLine={tempLine} />}
-          </g>
-        </svg>
-
-        {/* Transformable canvas content */}
+        
+        {/* Unified transform container - both layers move/scale together */}
         <div
           className="absolute inset-0 w-full h-full"
-          style={getTransformStyle()}
         >
-          {/* Nodes */}
-          {nodes.map((node) => (
-            <WorkflowNode
-              key={node.id}
-              node={node}
-              isSelected={selectedNode === node.id}
-              isDragging={draggingNode === node.id}
-              handlers={nodeHandlers}
-            />
-          ))}
+          {/* Workflow Layer - handles nodes, edges */}
+          <WorkflowLayer
+            nodes={nodes}
+            edges={edges}
+            tempLine={tempLine}
+            selectedNode={selectedNode}
+            draggingNode={draggingNode}
+            nodeHandlers={nodeHandlers}
+            edgeHandlers={edgeHandlers}
+            runCode={runCode}
+          />
         </div>
-      </div>
+
+        {/* Annotation Layer - simple overlay covering full canvas */}
+        {isAnnotationLayerVisible && (
+          <div className="absolute inset-0 z-20 pointer-events-none">
+            <AnnotationLayer
+              ref={annotationLayerRef}
+              activeTool={activeTool}
+              onFinish={() => {
+                onAnnotationToolChange?.("select");
+                // Save snapshot when finishing drawing
+                const snapshot = annotationLayerRef?.current?.snapshot();
+                if (snapshot) {
+                  onAnnotationSnapshotChange?.(snapshot);
+                }
+              }}
+              initialJSON={annotationSnapshot}
+              className="pointer-events-auto"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: activeTool === "select" ? "none" : "auto",
+              }}
+            />
+          </div>
+        )}
+      </motion.div>
     );
   }
 );

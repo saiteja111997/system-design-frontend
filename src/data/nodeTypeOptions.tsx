@@ -41,7 +41,7 @@ export interface NodeOption {
   configurations: NodeConfiguration;
 }
 
-export interface NodePositionType {
+export interface NodeType {
   id: string;
   label: string;
   description: string;
@@ -56,8 +56,8 @@ export const nodeCategories = [
   "Monitoring & Infra",
 ];
 
-// Node position types
-export const nodePositionTypes: NodePositionType[] = [
+// Node types for workflow positioning
+export const nodeTypes: NodeType[] = [
   {
     id: "start",
     label: "Start Node",
@@ -78,7 +78,7 @@ export const nodePositionTypes: NodePositionType[] = [
 export const nodeOptions: NodeOption[] = [
   // Entry Layer
   {
-    id: "client",
+    id: "client-app",
     label: "Client / User Node",
     icon: "Smartphone",
     category: "Entry Layer",
@@ -121,7 +121,7 @@ export const nodeOptions: NodeOption[] = [
     },
   },
   {
-    id: "dns",
+    id: "dns-resolver",
     label: "DNS Resolver",
     icon: "Globe",
     category: "Entry Layer",
@@ -157,7 +157,7 @@ export const nodeOptions: NodeOption[] = [
     },
   },
   {
-    id: "gateway",
+    id: "api-gateway",
     label: "API Gateway",
     icon: "Router",
     category: "Entry Layer",
@@ -869,28 +869,3 @@ export const nodeOptions: NodeOption[] = [
     },
   },
 ];
-
-// Export the original nodeOptions as nodeTypeOptions for backward compatibility
-export const nodeTypeOptions = nodeOptions;
-
-// Helper function to get configuration for a specific node type
-export const getNodeTypeConfiguration = (
-  nodeTypeId: string
-): NodeConfiguration | null => {
-  const nodeType = nodeOptions.find((option) => option.id === nodeTypeId);
-  return nodeType?.configurations || null;
-};
-
-// Helper function to get default configuration values for a node type
-export const getDefaultConfigurationValues = (
-  nodeTypeId: string
-): Record<string, string | number | boolean> => {
-  const config = getNodeTypeConfiguration(nodeTypeId);
-  if (!config) return {};
-
-  const defaults: Record<string, string | number | boolean> = {};
-  Object.values(config).forEach((field) => {
-    defaults[field.key] = field.defaultValue;
-  });
-  return defaults;
-};

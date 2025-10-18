@@ -18,9 +18,9 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.7 }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2 }}
       className="px-2.5 py-3 border-t border-slate-200 dark:border-slate-800"
     >
       <DropdownMenu>

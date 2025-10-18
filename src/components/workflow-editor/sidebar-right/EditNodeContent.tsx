@@ -8,11 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  nodeTypeOptions,
-  getNodeTypeConfiguration,
-  getDefaultConfigurationValues,
-} from "@/data/nodeTypeOptions";
+import { nodeOptions } from "@/data/nodeTypeOptions";
 import { EditNodeContentProps } from "@/types/workflow-editor/sidebar-right";
 import ConfigurationForm from "./ConfigurationForm";
 
@@ -36,11 +32,16 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
           setConfigurations(selectedNode.configurations);
         } else {
           // Get the node's current type and load defaults
-          const nodeType = nodeTypeOptions.find(
+          const nodeType = nodeOptions.find(
             (type) => type.label === selectedNode.label
           );
           if (nodeType) {
-            const defaultValues = getDefaultConfigurationValues(nodeType.id);
+            const defaultValues: Record<string, string | number | boolean> = {};
+            if (nodeType.configurations) {
+              Object.values(nodeType.configurations).forEach((field) => {
+                defaultValues[field.key] = field.defaultValue;
+              });
+            }
             setConfigurations(defaultValues);
             setSelectedNodeType(nodeType.id);
           }
@@ -54,7 +55,15 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
   // Load default configurations when node type changes
   useEffect(() => {
     if (selectedNodeType) {
-      const defaultValues = getDefaultConfigurationValues(selectedNodeType);
+      const nodeOption = nodeOptions.find(
+        (option) => option.id === selectedNodeType
+      );
+      const defaultValues: Record<string, string | number | boolean> = {};
+      if (nodeOption?.configurations) {
+        Object.values(nodeOption.configurations).forEach((field) => {
+          defaultValues[field.key] = field.defaultValue;
+        });
+      }
       setConfigurations(defaultValues);
     }
   }, [selectedNodeType]);
@@ -80,9 +89,7 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
   };
 
   const handleEditNodeDone = () => {
-    const nodeType = nodeTypeOptions.find(
-      (type) => type.id === selectedNodeType
-    );
+    const nodeType = nodeOptions.find((type) => type.id === selectedNodeType);
     if (selectedNodeId && nodeType && onUpdateNode) {
       onUpdateNode(selectedNodeId, {
         label: nodeType.label,
@@ -137,7 +144,7 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
               <SelectValue placeholder="Select new node type..." />
             </SelectTrigger>
             <SelectContent className="max-h-64">
-              {nodeTypeOptions.map((nodeType) => (
+              {nodeOptions.map((nodeType) => (
                 <SelectItem key={nodeType.id} value={nodeType.id}>
                   <div className="flex items-center gap-2 py-1">
                     {nodeType.component}
@@ -160,7 +167,10 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
             <>
               {/* Configuration Form */}
               {(() => {
-                const nodeConfig = getNodeTypeConfiguration(selectedNodeType);
+                const nodeOption = nodeOptions.find(
+                  (option) => option.id === selectedNodeType
+                );
+                const nodeConfig = nodeOption?.configurations;
                 return (
                   nodeConfig && (
                     <div className="mt-4 space-y-4">
