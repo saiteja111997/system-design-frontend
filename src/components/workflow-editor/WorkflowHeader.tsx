@@ -9,7 +9,7 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{
-        duration: 0.3,
+        duration: 0.2,
         ease: "easeOut",
         delay: 0.1,
       }}

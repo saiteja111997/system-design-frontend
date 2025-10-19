@@ -14,16 +14,20 @@ const CollapsedState: React.FC<CollapsedStateProps> = ({ onTabChange }) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center space-y-2 py-4"
+      transition={{ duration: 0.2 }}
+      className="flex flex-col items-center space-y-2 py-4 overflow-hidden"
     >
       {/* Vertical Navigation with Tooltips */}
       {sidebarDockItems.map((item, index) => (
         <motion.div
           key={item.id}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 + index * 0.05, duration: 0.3 }}
-          
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.2,
+            delay: index * 0.05,
+            ease: "easeOut",
+          }}
         >
           <Tooltip>
             <TooltipTrigger asChild>

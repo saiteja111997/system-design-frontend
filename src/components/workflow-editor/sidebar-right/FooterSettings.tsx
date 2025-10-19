@@ -7,8 +7,8 @@ import { FooterSettingsProps } from "@/types/workflow-editor/sidebar-right";
 const FooterSettings: React.FC<FooterSettingsProps> = ({ sidebarExpanded }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ delay: 0.2, duration: 0.4 }}
       className="p-4 px-3 border-t border-slate-200 dark:border-slate-800"
     >

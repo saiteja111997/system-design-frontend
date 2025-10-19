@@ -11,7 +11,6 @@ import {
   NodeHandlers,
   EdgeHandlers,
 } from "@/types/workflow-editor/workflow";
-import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
 
 interface WorkflowLayerProps {
   nodes: Node[];
@@ -39,7 +38,6 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
     ref
   ) => {
     const { globalAnimationStyle } = useWorkflowAnimation();
-    const { getTransformStyle } = useCanvasControlsContext();
 
     return (
       <div
@@ -47,12 +45,12 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
         className="absolute inset-0 w-full h-full"
         style={globalAnimationStyle}
       >
-        {/* SVG for edges - no transform needed (parent handles it) */}
+        {/* SVG for edges - transform handled by parent container */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
           <defs>
             <SvgDefinitions />
           </defs>
-          <g style={getTransformStyle()}>
+          <g>
             {/* Existing edges */}
             {edges.map((edge) => {
               const sourceNode = nodes.find((n) => n.id === edge.source);
@@ -77,11 +75,8 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
           </g>
         </svg>
 
-        {/* Transformable canvas content */}
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={getTransformStyle()}
-        >
+        {/* Canvas content - transform handled by parent container */}
+        <div className="absolute inset-0 w-full h-full">
           {/* Nodes */}
           {nodes.map((node) => (
             <WorkflowNode
@@ -97,5 +92,4 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
     );
   }
 );
-
 WorkflowLayer.displayName = "WorkflowLayer";

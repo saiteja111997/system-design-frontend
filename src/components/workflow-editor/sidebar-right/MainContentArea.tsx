@@ -51,33 +51,28 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
   };
 
   return (
-    <div className="flex-1 p-4 relative overflow-y-auto">
+    <div className="flex-1 p-4 relative overflow-hidden">
       {/* Collapsed State */}
       {!sidebarExpanded && <CollapsedState onTabChange={onTabChange} />}
 
       {/* Expanded Content */}
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{
-          opacity: sidebarExpanded ? 1 : 0,
-          x: sidebarExpanded ? 0 : -30,
-        }}
-        transition={{
-          duration: 0.3,
-          delay: sidebarExpanded ? 0.4 : 0,
-          ease: "easeOut",
-        }}
-        className="space-y-4"
-      >
-        {sidebarExpanded && (
-          <>
-            {/* Selected Tab Content */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-              {getSelectedTabContent()}
-            </div>
-          </>
-        )}
-      </motion.div>
+      {sidebarExpanded && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            delay: 0.3,
+            duration: 0.25,
+            ease: "easeOut",
+          }}
+          className="space-y-4 h-full overflow-y-auto"
+        >
+          {/* Selected Tab Content */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600 min-h-0">
+            {getSelectedTabContent()}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

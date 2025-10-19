@@ -37,33 +37,33 @@ const createNodeFromOption = (
 // Initial nodes displayed on the workflow canvas
 export const initialNodes: Node[] = [
   // Client
-  createNodeFromOption("client-app", 1, "Client", 160, 330, "start"),
+  createNodeFromOption("client-app", 1, "Client", 160, 305, "start"),
   // API Gateway
-  createNodeFromOption("api-gateway", 2, "Gateway", 320, 330),
+  createNodeFromOption("api-gateway", 2, "Gateway", 320, 305),
   // Services Layer
-  createNodeFromOption("sync-compute", 3, "User Service", 480, 140),
-  createNodeFromOption("sync-compute", 4, "Order Service", 480, 330),
-  createNodeFromOption("sync-compute", 5, "Payment", 480, 520),
+  createNodeFromOption("sync-compute", 3, "User Service", 480, 115),
+  createNodeFromOption("sync-compute", 4, "Order Service", 480, 305),
+  createNodeFromOption("sync-compute", 5, "Payment", 480, 495),
   // Load Balancers
-  createNodeFromOption("load-balancer", 6, "User LB", 640, 140),
-  createNodeFromOption("load-balancer", 7, "Order LB", 640, 330),
-  createNodeFromOption("load-balancer", 8, "Pay LB", 640, 520),
+  createNodeFromOption("load-balancer", 6, "User LB", 640, 115),
+  createNodeFromOption("load-balancer", 7, "Order LB", 640, 305),
+  createNodeFromOption("load-balancer", 8, "Pay LB", 640, 495),
   // User Service Servers
-  createNodeFromOption("sync-compute", 9, "User S1", 800, 80),
-  createNodeFromOption("sync-compute", 10, "User S2", 800, 140),
-  createNodeFromOption("sync-compute", 11, "User S3", 800, 200),
+  createNodeFromOption("sync-compute", 9, "User S1", 800, 55),
+  createNodeFromOption("sync-compute", 10, "User S2", 800, 115),
+  createNodeFromOption("sync-compute", 11, "User S3", 800, 175),
   // Order Service Servers
-  createNodeFromOption("sync-compute", 12, "Order S1", 800, 270),
-  createNodeFromOption("sync-compute", 13, "Order S2", 800, 330),
-  createNodeFromOption("sync-compute", 14, "Order S3", 800, 390),
+  createNodeFromOption("sync-compute", 12, "Order S1", 800, 245),
+  createNodeFromOption("sync-compute", 13, "Order S2", 800, 305),
+  createNodeFromOption("sync-compute", 14, "Order S3", 800, 365),
   // Payment Service Servers
-  createNodeFromOption("sync-compute", 15, "Pay S1", 800, 460),
-  createNodeFromOption("sync-compute", 16, "Pay S2", 800, 520),
-  createNodeFromOption("sync-compute", 17, "Pay S3", 800, 580),
+  createNodeFromOption("sync-compute", 15, "Pay S1", 800, 435),
+  createNodeFromOption("sync-compute", 16, "Pay S2", 800, 495),
+  createNodeFromOption("sync-compute", 17, "Pay S3", 800, 555),
   // Databases
-  createNodeFromOption("database", 18, "User DB", 960, 140),
-  createNodeFromOption("database", 19, "Order DB", 960, 330),
-  createNodeFromOption("database", 20, "Pay DB", 960, 520),
+  createNodeFromOption("database", 18, "User DB", 960, 115),
+  createNodeFromOption("database", 19, "Order DB", 960, 305),
+  createNodeFromOption("database", 20, "Pay DB", 960, 495),
 ];
 
 // Initial edges connecting the nodes

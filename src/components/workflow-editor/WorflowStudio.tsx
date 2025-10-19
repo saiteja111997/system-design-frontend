@@ -245,77 +245,83 @@ const WorkflowEditorContent: React.FC = () => {
       requestsPerSecond={requestsPerSecond}
       setRequestsPerSecond={setRequestsPerSecond}
     >
-      {/* Only show header in normal mode, not in fullscreen */}
-      {!isFullscreen && <WorkflowHeader onAddNode={addNode} />}
-      <div
-        className="flex flex-col select-none bg-white dark:bg-slate-950 relative h-full"
-        onMouseLeave={handleMouseUp}
-        ref={containerRef}
-      >
-        {/* Main content area with right sidebar */}
-        <div className="flex-1 flex relative">
-          {/* Workflow Canvas - with right margin for collapsed sidebar */}
-          <div className="flex-1 flex flex-col mr-[74px]">
-            <WorkflowCanvas
-              ref={canvasRef}
-              nodes={nodes}
-              edges={edges}
-              tempLine={tempLine}
-              selectedNode={selectedNode}
-              draggingNode={draggingNode}
-              nodeHandlers={nodeHandlers}
-              edgeHandlers={edgeHandlers}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              runCode={runCode}
-              activeTool={activeTool}
-              isAnnotationLayerVisible={isAnnotationLayerVisible}
-              annotationSnapshot={annotationSnapshot}
-              annotationLayerRef={annotationLayerRef}
-              onAnnotationToolChange={setActiveTool}
-              onAnnotationSnapshotChange={setAnnotationSnapshot}
-            />
+      <div className="relative flex h-full">
+        {/* Main content area - with right margin for sidebar */}
+        <div className="flex-1 flex flex-col mr-[74px]">
+          {/* Only show header in normal mode, not in fullscreen */}
+          {!isFullscreen && <WorkflowHeader onAddNode={addNode} />}
 
-            {/* Dock Navigation - positioned in top-left of workflow editor */}
-            <DockNavigation
-              collapsible={false}
-              position="top-left"
-              responsive="top-left"
-              items={canvasDockItems}
-              onItemClick={handleWorkflowDockItemClick}
-              activeItem={activeTool}
-            />
-
-            {/* Run Button - positioned below DockNavigation */}
-            <div className="absolute bottom-20 left-4 z-20">
-              <RunButton runCode={runCode} onToggle={setRunCode} />
-            </div>
-
-            {/* Zoom Indicator - positioned on the right side before sidebar */}
-            <div className="absolute top-4 right-22 z-20">
-              <ZoomIndicator
-                currentZoom={canvasControls.transform.scale}
-                minZoom={MIN_ZOOM}
-                maxZoom={MAX_ZOOM}
-                onZoomChange={canvasControls.setZoom}
-                onResetZoom={canvasControls.resetZoom}
+          <div
+            className="flex-1 flex flex-col select-none bg-white dark:bg-slate-950 relative"
+            onMouseLeave={handleMouseUp}
+            ref={containerRef}
+          >
+            {/* Workflow Canvas */}
+            <div className="flex-1 flex relative">
+              <WorkflowCanvas
+                ref={canvasRef}
+                nodes={nodes}
+                edges={edges}
+                tempLine={tempLine}
+                selectedNode={selectedNode}
+                draggingNode={draggingNode}
+                nodeHandlers={nodeHandlers}
+                edgeHandlers={edgeHandlers}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                runCode={runCode}
+                activeTool={activeTool}
+                isAnnotationLayerVisible={isAnnotationLayerVisible}
+                annotationSnapshot={annotationSnapshot}
+                annotationLayerRef={annotationLayerRef}
+                onAnnotationToolChange={setActiveTool}
+                onAnnotationSnapshotChange={setAnnotationSnapshot}
               />
-            </div>
-          </div>
 
-          {/* Right Sidebar - positioned within workflow editor height */}
-          <SidebarRight
-            requestsPerSecond={requestsPerSecond}
-            onRequestsPerSecondChange={setRequestsPerSecond}
-            nodes={nodes}
-            onAddNode={addNode}
-            onUpdateNode={updateNode}
-          />
+              {/* Dock Navigation - positioned in top-left of workflow editor */}
+              <DockNavigation
+                collapsible={false}
+                position="top-left"
+                responsive="top-left"
+                items={canvasDockItems}
+                onItemClick={handleWorkflowDockItemClick}
+                activeItem={activeTool}
+              />
+
+              {/* Run Button - positioned below DockNavigation */}
+              <div className="absolute bottom-4 left-20 z-20">
+                <RunButton runCode={runCode} onToggle={setRunCode} />
+              </div>
+
+              {/* Zoom Indicator - positioned on the right side before sidebar */}
+              <div className="absolute top-4 right-4 z-20">
+                <ZoomIndicator
+                  currentZoom={canvasControls.transform.scale}
+                  minZoom={MIN_ZOOM}
+                  maxZoom={MAX_ZOOM}
+                  onZoomChange={canvasControls.setZoom}
+                  onResetZoom={canvasControls.resetZoom}
+                />
+              </div>
+            </div>
+
+            {!isFullscreen && (
+              <WorkflowFooter
+                nodeCount={nodes.length}
+                edgeCount={edges.length}
+              />
+            )}
+          </div>
         </div>
 
-        {!isFullscreen && (
-          <WorkflowFooter nodeCount={nodes.length} edgeCount={edges.length} />
-        )}
+        {/* Right Sidebar - now sibling to main content, extends full height */}
+        <SidebarRight
+          requestsPerSecond={requestsPerSecond}
+          onRequestsPerSecondChange={setRequestsPerSecond}
+          nodes={nodes}
+          onAddNode={addNode}
+          onUpdateNode={updateNode}
+        />
       </div>
     </WorkflowProvider>
   );

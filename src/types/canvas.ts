@@ -22,5 +22,5 @@ export interface CanvasControlsHook {
   handleTouchMove: (event: React.TouchEvent) => void;
   handleTouchEnd: (event: React.TouchEvent) => void;
   handleWheel: (event: React.WheelEvent) => void;
-  getTransformStyle: () => React.CSSProperties;
+  getCanvasTransformStyle: () => React.CSSProperties;
 }

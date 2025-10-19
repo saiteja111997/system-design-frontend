@@ -53,6 +53,7 @@ export const WorkflowCanvas = forwardRef<
       handleTouchMove,
       handleTouchEnd,
       handleWheel,
+      getCanvasTransformStyle,
     } = useCanvasControlsContext();
 
     const handleMouseDown = (event: React.MouseEvent) => {
@@ -143,10 +144,11 @@ export const WorkflowCanvas = forwardRef<
       >
         {/* Fixed background grid */}
         <CanvasGrid />
-        
-        {/* Unified transform container - both layers move/scale together */}
+
+        {/* Transform container - both layers move/scale together with canvasTransform */}
         <div
           className="absolute inset-0 w-full h-full"
+          style={getCanvasTransformStyle()}
         >
           {/* Workflow Layer - handles nodes, edges */}
           <WorkflowLayer
@@ -159,35 +161,35 @@ export const WorkflowCanvas = forwardRef<
             edgeHandlers={edgeHandlers}
             runCode={runCode}
           />
-        </div>
 
-        {/* Annotation Layer - simple overlay covering full canvas */}
-        {isAnnotationLayerVisible && (
-          <div className="absolute inset-0 z-20 pointer-events-none">
-            <AnnotationLayer
-              ref={annotationLayerRef}
-              activeTool={activeTool}
-              onFinish={() => {
-                onAnnotationToolChange?.("select");
-                // Save snapshot when finishing drawing
-                const snapshot = annotationLayerRef?.current?.snapshot();
-                if (snapshot) {
-                  onAnnotationSnapshotChange?.(snapshot);
-                }
-              }}
-              initialJSON={annotationSnapshot}
-              className="pointer-events-auto"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                pointerEvents: activeTool === "select" ? "none" : "auto",
-              }}
-            />
-          </div>
-        )}
+          {/* Annotation Layer - follows same transform as workflow */}
+          {isAnnotationLayerVisible && (
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <AnnotationLayer
+                ref={annotationLayerRef}
+                activeTool={activeTool}
+                onFinish={() => {
+                  onAnnotationToolChange?.("select");
+                  // Save snapshot when finishing drawing
+                  const snapshot = annotationLayerRef?.current?.snapshot();
+                  if (snapshot) {
+                    onAnnotationSnapshotChange?.(snapshot);
+                  }
+                }}
+                initialJSON={annotationSnapshot}
+                className="pointer-events-auto"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: activeTool === "select" ? "none" : "auto",
+                }}
+              />
+            </div>
+          )}
+        </div>
       </motion.div>
     );
   }

@@ -119,7 +119,7 @@ const EditNodeContent: React.FC<EditNodeContentProps> = ({
             <SelectValue placeholder="Choose a node..." />
           </SelectTrigger>
           <SelectContent>
-            {nodes
+            {[...nodes]
               .sort((a, b) => a.id - b.id)
               .map((node) => (
                 <SelectItem key={node.id} value={node.id.toString()}>
