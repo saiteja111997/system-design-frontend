@@ -39,6 +39,39 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
   ) => {
     const { globalAnimationStyle } = useWorkflowAnimation();
 
+    // Calculate dynamic bounds for the SVG based on node positions
+    const calculateSVGBounds = () => {
+      if (nodes.length === 0) {
+        return { minX: -1000, minY: -1000, maxX: 1000, maxY: 1000 };
+      }
+
+      const padding = 500; // Extra padding around content
+      const nodeSize = 200; // Approximate node size for bounds calculation
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      nodes.forEach(node => {
+        minX = Math.min(minX, node.x - nodeSize / 2);
+        minY = Math.min(minY, node.y - nodeSize / 2);
+        maxX = Math.max(maxX, node.x + nodeSize / 2);
+        maxY = Math.max(maxY, node.y + nodeSize / 2);
+      });
+
+      return {
+        minX: minX - padding,
+        minY: minY - padding,
+        maxX: maxX + padding,
+        maxY: maxY + padding,
+      };
+    };
+
+    const bounds = calculateSVGBounds();
+    const svgWidth = bounds.maxX - bounds.minX;
+    const svgHeight = bounds.maxY - bounds.minY;
+
     return (
       <div
         ref={ref}
@@ -46,7 +79,16 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
         style={globalAnimationStyle}
       >
         {/* SVG for edges - transform handled by parent container */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+        <svg 
+          className="absolute pointer-events-none"
+          style={{
+            left: `${bounds.minX}px`,
+            top: `${bounds.minY}px`,
+            width: `${svgWidth}px`,
+            height: `${svgHeight}px`,
+          }}
+          viewBox={`${bounds.minX} ${bounds.minY} ${svgWidth} ${svgHeight}`}
+        >
           <defs>
             <SvgDefinitions />
           </defs>
