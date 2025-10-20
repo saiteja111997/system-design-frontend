@@ -205,6 +205,20 @@ const WorkflowEditorContent: React.FC = () => {
   );
   const runCode = useWorkflowStore((state) => state.runCode);
 
+  // Log node coordinates whenever nodes change
+  useEffect(() => {
+    console.log("🎯 Current Node Coordinates:");
+    console.table(
+      nodes.map((node) => ({
+        ID: node.id,
+        Label: node.label,
+        X: node.x,
+        Y: node.y,
+        Type: node.type,
+      }))
+    );
+  }, [nodes]);
+
   // Actions using direct Zustand selectors
   const addNode = useWorkflowStore((state) => state.addNode);
   const deleteEdge = useWorkflowStore((state) => state.deleteEdge);
@@ -289,7 +303,7 @@ const WorkflowEditorContent: React.FC = () => {
               />
 
               {/* Run Button - positioned below DockNavigation */}
-              <div className="absolute bottom-4 left-20 z-20">
+              <div className="absolute bottom-4 right-4 z-20">
                 <RunButton runCode={runCode} onToggle={setRunCode} />
               </div>
 

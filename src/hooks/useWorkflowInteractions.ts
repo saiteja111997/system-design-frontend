@@ -28,7 +28,11 @@ export const useWorkflowInteractions = ({
   const addEdge = useWorkflowStore((state) => state.addEdge);
   const deleteNode = useWorkflowStore((state) => state.deleteNode);
 
+  // Get canvas transform state
+  const canvasTransform = useWorkflowStore((state) => state.canvasTransform);
+
   // Helper function to convert viewport coordinates to canvas coordinates
+  // This accounts for canvas scale and translation transforms
   const getCanvasCoordinates = useCallback(
     (clientX: number, clientY: number) => {
       if (!canvasRef.current) return { x: clientX, y: clientY };
@@ -37,9 +41,20 @@ export const useWorkflowInteractions = ({
       const rawX = clientX - rect.left;
       const rawY = clientY - rect.top;
 
-      return { x: rawX, y: rawY };
+      // Transform coordinates to account for canvas scale and translation with null-safe fallback
+      const {
+        scale = 1,
+        translateX = 0,
+        translateY = 0,
+      } = canvasTransform ?? {};
+
+      // Reverse the canvas transform to get actual canvas coordinates
+      const canvasX = (rawX - translateX) / scale;
+      const canvasY = (rawY - translateY) / scale;
+
+      return { x: canvasX, y: canvasY };
     },
-    [canvasRef]
+    [canvasRef, canvasTransform]
   );
 
   const handleNodeMouseDown = useCallback(
