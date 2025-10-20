@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect } from "react";
+import React, { forwardRef, useEffect, useRef, useCallback } from "react";
 import { WorkflowCanvasProps } from "@/types/workflow-editor/components";
 import { WorkflowLayer } from "./WorkflowLayer";
 import { CanvasGrid } from "./CanvasGrid";
@@ -11,8 +11,7 @@ interface WorkflowCanvasWithAnnotationProps extends WorkflowCanvasProps {
   // Simple annotation props - no complexity!
   activeTool?: Tool;
   isAnnotationLayerVisible?: boolean;
-  annotationSnapshot?: CanvasState | null;
-  annotationLayerRef?: React.RefObject<
+  annotationLayerRef?: React.MutableRefObject<
     import("./AnnotationLayer").AnnotationLayerHandle | null
   >;
   onAnnotationToolChange?: (tool: Tool) => void;
@@ -38,7 +37,6 @@ export const WorkflowCanvas = forwardRef<
       // Simple annotation props
       activeTool = "select",
       isAnnotationLayerVisible = false,
-      annotationSnapshot = null,
       annotationLayerRef,
       onAnnotationToolChange,
       onAnnotationSnapshotChange,
@@ -55,6 +53,29 @@ export const WorkflowCanvas = forwardRef<
       handleWheel,
       getCanvasTransformStyle,
     } = useCanvasControlsContext();
+
+    // Internal ref for annotation layer
+    const internalAnnotationRef = useRef<
+      import("./AnnotationLayer").AnnotationLayerHandle | null
+    >(null);
+
+    // Connect internal ref to parent ref whenever the annotation layer component changes
+    useEffect(() => {
+      if (annotationLayerRef) {
+        annotationLayerRef.current = internalAnnotationRef.current;
+      }
+    }, [annotationLayerRef]);
+
+    // Also create a callback ref to ensure immediate connection when AnnotationLayer mounts
+    const handleAnnotationLayerRef = useCallback(
+      (element: import("./AnnotationLayer").AnnotationLayerHandle | null) => {
+        internalAnnotationRef.current = element;
+        if (annotationLayerRef) {
+          annotationLayerRef.current = element;
+        }
+      },
+      [annotationLayerRef]
+    );
 
     const handleMouseDown = (event: React.MouseEvent) => {
       // Don't start panning if annotation layer is active and not in select mode
@@ -166,17 +187,17 @@ export const WorkflowCanvas = forwardRef<
           {isAnnotationLayerVisible && (
             <div className="absolute inset-0 z-20 pointer-events-none">
               <AnnotationLayer
-                ref={annotationLayerRef}
+                key="annotation-layer-stable"
+                ref={handleAnnotationLayerRef}
                 activeTool={activeTool}
                 onFinish={() => {
                   onAnnotationToolChange?.("select");
                   // Save snapshot when finishing drawing
-                  const snapshot = annotationLayerRef?.current?.snapshot();
+                  const snapshot = internalAnnotationRef.current?.snapshot();
                   if (snapshot) {
                     onAnnotationSnapshotChange?.(snapshot);
                   }
                 }}
-                initialJSON={annotationSnapshot}
                 className="pointer-events-auto"
                 style={{
                   position: "absolute",
