@@ -1,5 +1,5 @@
 import { Plus, Edit3, BarChart3, Activity, Sparkles } from "lucide-react";
-import { DockItem } from "@/components/workflow-editor/DockNavigation";
+import { DockItem } from "@/components/main-sections/workflow-studio/DockNavigation";
 
 export const sidebarDockItems: DockItem[] = [
   {

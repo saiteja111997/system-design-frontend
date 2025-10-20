@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardView } from "@/components/main-tabs/dashboard/DashboardView";
-import { NewVideoView } from "@/components/main-tabs/new-video-view/NewVideoView";
-import { AIResearchView } from "@/components/main-tabs/ai-assistant/AIResearchView";
-import { AnalyticsView } from "@/components/main-tabs/analytics/AnalyticsView";
+import { DashboardView } from "@/components/main-sections/dashboard/DashboardView";
+import { NewVideoView } from "@/components/main-sections/new-video-view/NewVideoView";
+import { AIResearchView } from "@/components/main-sections/ai-assistant/AIResearchView";
+import { AnalyticsView } from "@/components/main-sections/analytics/AnalyticsView";
 import { MainLayout } from "@/components/MainLayout";
-import AnimatedWorkflowEditor from "@/components/workflow-editor/WorflowStudio";
+import WorkflowStudio from "@/components/main-sections/workflow-studio/WorflowStudio";
 
 export default function Dashboard() {
-  const [currentPage, setCurrentPage] = useState("system-design");
+  const [currentPage, setCurrentPage] = useState("my-progress");
 
   const renderPage = () => {
     switch (currentPage) {
@@ -18,7 +18,7 @@ export default function Dashboard() {
       case "bug-practice":
         return <NewVideoView />;
       case "system-design":
-        return <AnimatedWorkflowEditor />;
+        return <WorkflowStudio />;
       case "challenges":
         return <AnalyticsView />;
       case "recruiter-assessment":
@@ -26,7 +26,7 @@ export default function Dashboard() {
       case "settings":
         return <AnalyticsView />;
       default:
-        return <AnimatedWorkflowEditor />;
+        return <WorkflowStudio />;
     }
   };
   return (

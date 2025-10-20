@@ -2,8 +2,12 @@
  * Imperative API handlers for the annotation layer
  */
 
-import { serializeCanvas, restoreCanvas, type CanvasState } from '../../../utils/annotationUtils';
-import type { FabricCanvas, HistoryManager } from './types';
+import {
+  serializeCanvas,
+  restoreCanvas,
+  type CanvasState,
+} from "../../../../utils/annotationUtils";
+import type { FabricCanvas, HistoryManager } from "./types";
 
 /**
  * Create imperative handlers for external control of the annotation layer
@@ -32,17 +36,17 @@ export function createImperativeHandlers(
     /**
      * Export canvas as PNG
      */
-    exportPNG: (options?: { 
-      format?: 'png' | 'jpeg';
+    exportPNG: (options?: {
+      format?: "png" | "jpeg";
       quality?: number;
       multiplier?: number;
     }): string | null => {
       if (!canvas) return null;
 
       const defaults = {
-        format: 'png' as const,
+        format: "png" as const,
         quality: 1,
-        multiplier: 1
+        multiplier: 1,
       };
 
       const config = { ...defaults, ...options };
@@ -50,7 +54,7 @@ export function createImperativeHandlers(
       return canvas.toDataURL({
         format: config.format,
         quality: config.quality,
-        multiplier: config.multiplier
+        multiplier: config.multiplier,
       });
     },
 
@@ -81,7 +85,7 @@ export function createImperativeHandlers(
      */
     undo: async (): Promise<void> => {
       if (!canvas || !historyManager) return;
-      
+
       const state = historyManager.undo();
       if (state !== null && state !== undefined) {
         // Suppress AFTER getting state, so restore won't add new history
@@ -98,7 +102,7 @@ export function createImperativeHandlers(
      */
     redo: async (): Promise<void> => {
       if (!canvas || !historyManager) return;
-      
+
       const state = historyManager.redo();
       if (state !== null && state !== undefined) {
         // Suppress AFTER getting state, so restore won't add new history
@@ -129,6 +133,6 @@ export function createImperativeHandlers(
      */
     canRedo: (): boolean => {
       return historyManager?.canRedo() ?? false;
-    }
+    },
   };
 }

@@ -2,35 +2,32 @@
  * Custom hooks for annotation layer functionality
  */
 
-import { useRef, useCallback, useMemo, useState, useEffect } from 'react';
-import { 
-  serializeCanvas, 
-  HistoryManager, 
+import { useRef, useCallback, useMemo, useState, useEffect } from "react";
+import {
+  serializeCanvas,
+  HistoryManager,
   debounce,
   calculateResizeScale,
-  setCanvasSize
-} from '../../../utils/annotationUtils';
-import type { FabricCanvas as UtilsFabricCanvas } from '../../../utils/annotationUtils';
-import { 
-  initializeFabricCanvas, 
+  setCanvasSize,
+} from "../../../../utils/annotationUtils";
+import type { FabricCanvas as UtilsFabricCanvas } from "../../../../utils/annotationUtils";
+import {
+  initializeFabricCanvas,
   scaleCanvasObjects,
-  disposeCanvas 
-} from './canvasOperations';
-import type { 
-  FabricCanvas, 
-  DrawingState
-} from './types';
+  disposeCanvas,
+} from "./canvasOperations";
+import type { FabricCanvas, DrawingState } from "./types";
 
 /**
  * Type guard to check if canvas has required serialization methods
  */
 function isSerializableCanvas(canvas: unknown): canvas is UtilsFabricCanvas {
   return (
-    typeof canvas === 'object' &&
+    typeof canvas === "object" &&
     canvas !== null &&
-    typeof (canvas as Record<string, unknown>).toJSON === 'function' &&
-    typeof (canvas as Record<string, unknown>).getWidth === 'function' &&
-    typeof (canvas as Record<string, unknown>).getHeight === 'function'
+    typeof (canvas as Record<string, unknown>).toJSON === "function" &&
+    typeof (canvas as Record<string, unknown>).getWidth === "function" &&
+    typeof (canvas as Record<string, unknown>).getHeight === "function"
   );
 }
 
@@ -49,9 +46,9 @@ export function useCanvasSetup() {
 
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
-    
+
     const fabricCanvas = initializeFabricCanvas(canvasRef.current, rect);
-    
+
     fabricCanvasRef.current = fabricCanvas;
     setContainerSize({ width: rect.width, height: rect.height });
     setIsReady(true);
@@ -70,7 +67,7 @@ export function useCanvasSetup() {
     containerSize,
     setContainerSize,
     initializeCanvas,
-    cleanup
+    cleanup,
   };
 }
 
@@ -81,21 +78,21 @@ export function useDrawingState() {
   const [drawingState, setDrawingState] = useState<DrawingState>({
     isDrawing: false,
     startPoint: null,
-    currentShape: null
+    currentShape: null,
   });
 
   const resetDrawingState = useCallback(() => {
     setDrawingState({
       isDrawing: false,
       startPoint: null,
-      currentShape: null
+      currentShape: null,
     });
   }, []);
 
   return {
     drawingState,
     setDrawingState,
-    resetDrawingState
+    resetDrawingState,
   };
 }
 
@@ -103,9 +100,12 @@ export function useDrawingState() {
  * Hook for managing history and persistence
  * Returns a stable debounced save function that can be flushed on demand
  */
-export function useHistoryManager(canvas: FabricCanvas | null, blockSavesRef?: React.RefObject<boolean>) {
+export function useHistoryManager(
+  canvas: FabricCanvas | null,
+  blockSavesRef?: React.RefObject<boolean>
+) {
   const historyManagerRef = useRef<HistoryManager>(new HistoryManager(50));
-  
+
   // Flag to track if we need to flush pending saves
   const hasPendingSaveRef = useRef(false);
 
@@ -115,24 +115,28 @@ export function useHistoryManager(canvas: FabricCanvas | null, blockSavesRef?: R
    */
   const saveToHistory = useCallback(() => {
     if (!canvas) return;
-    
+
     // Check if saves are blocked (during undo/redo operations)
     if (blockSavesRef?.current) {
-      console.log('[AnnotationLayer] History save blocked during undo/redo operation');
+      console.log(
+        "[AnnotationLayer] History save blocked during undo/redo operation"
+      );
       return;
     }
-    
+
     // Verify canvas is serializable before attempting to save
     if (!isSerializableCanvas(canvas)) {
-      console.error('[AnnotationLayer] Canvas does not support serialization methods. Skipping history save.');
+      console.error(
+        "[AnnotationLayer] Canvas does not support serialization methods. Skipping history save."
+      );
       return;
     }
-    
+
     try {
       const state = serializeCanvas(canvas);
       historyManagerRef.current.push(state);
     } catch (error) {
-      console.error('[AnnotationLayer] Failed to save history:', error);
+      console.error("[AnnotationLayer] Failed to save history:", error);
     } finally {
       hasPendingSaveRef.current = false;
     }
@@ -175,7 +179,10 @@ export function useHistoryManager(canvas: FabricCanvas | null, blockSavesRef?: R
         try {
           saveToHistory();
         } catch (error) {
-          console.warn('[AnnotationLayer] Failed to flush history on cleanup:', error);
+          console.warn(
+            "[AnnotationLayer] Failed to flush history on cleanup:",
+            error
+          );
         }
       }
     };
@@ -184,7 +191,7 @@ export function useHistoryManager(canvas: FabricCanvas | null, blockSavesRef?: R
   return {
     historyManagerRef,
     saveToHistory: saveToHistoryDebounced,
-    saveToHistoryImmediate
+    saveToHistoryImmediate,
   };
 }
 
@@ -205,7 +212,10 @@ export function useCanvasResize(
     const rect = container.getBoundingClientRect();
     const newSize = { width: rect.width, height: rect.height };
 
-    if (newSize.width === containerSize.width && newSize.height === containerSize.height) {
+    if (
+      newSize.width === containerSize.width &&
+      newSize.height === containerSize.height
+    ) {
       return;
     }
 
@@ -221,11 +231,17 @@ export function useCanvasResize(
 
     setContainerSize(newSize);
     canvas.renderAll();
-  }, [fabricCanvasRef, containerRef, canvasRef, containerSize, setContainerSize]);
+  }, [
+    fabricCanvasRef,
+    containerRef,
+    canvasRef,
+    containerSize,
+    setContainerSize,
+  ]);
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
 
   return handleResize;

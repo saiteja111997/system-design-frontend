@@ -32,11 +32,11 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </p>
         </div>
         <Button
-          onClick={() => onNavigate("create")}
+          onClick={() => onNavigate("system-design")}
           className="bg-gradient-primary text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Create Video
+          System Design
         </Button>
       </motion.div>
 

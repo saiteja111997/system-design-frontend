@@ -2,12 +2,20 @@
  * Type definitions for the AnnotationLayer component
  */
 
-import type { CanvasState } from '../../../utils/annotationUtils';
+import type { CanvasState } from "../../../../utils/annotationUtils";
 
 /**
  * Available annotation tools
  */
-export type Tool = 'select' | 'rectangle' | 'circle' | 'freehand' | 'freedraw' | 'arrow' | 'line' | 'text';
+export type Tool =
+  | "select"
+  | "rectangle"
+  | "circle"
+  | "freehand"
+  | "freedraw"
+  | "arrow"
+  | "line"
+  | "text";
 
 /**
  * Fabric.js event interface
@@ -49,22 +57,22 @@ export interface FabricCanvas {
   clear(): void;
   renderAll(): void;
   dispose(): void;
-  
+
   // Export methods
   toDataURL(options?: Record<string, unknown>): string;
   toSVG(): string;
   toJSON(propertiesToInclude?: string[]): Record<string, unknown>;
   loadFromJSON(json: Record<string, unknown>, callback: () => void): void;
-  
+
   // Dimension methods
   getWidth(): number;
   getHeight(): number;
   setDimensions(dimensions: { width: number; height: number }): void;
-  
+
   // Event methods
   on(eventName: string, handler: (e?: FabricEvent) => void): void;
   off(eventName: string, handler: (e?: FabricEvent) => void): void;
-  
+
   // Drawing properties
   isDrawingMode: boolean;
   selection: boolean;
@@ -74,10 +82,10 @@ export interface FabricCanvas {
     width: number;
     color: string;
   };
-  
+
   // Canvas element
   upperCanvasEl: HTMLElement;
-  
+
   // Canvas configuration
   preserveObjectStacking: boolean;
   defaultCursor: string;
@@ -126,7 +134,9 @@ export interface AnnotationLayerHandle {
   /** Exports entire history stack for persistence */
   exportHistory(): { history: CanvasState[]; currentIndex: number } | null;
   /** Imports entire history stack from persistence */
-  importHistory(data: { history: CanvasState[]; currentIndex: number } | null): void;
+  importHistory(
+    data: { history: CanvasState[]; currentIndex: number } | null
+  ): void;
 }
 
 /**

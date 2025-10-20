@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import SidebarLeft from "@/components/sidebar-left/SidebarLeft";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ModeToggle } from "./extras/ModeToggele";
+import Header from "./header/Header";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -41,27 +42,7 @@ export function MainLayout({
         />
 
         <div className="flex-1 flex flex-col overflow-hidden w-full">
-          <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6">
-            <Button variant="ghost" size="icon" onClick={handleToggleSidebar}>
-              <Menu className="w-5 h-5" />
-            </Button>
-
-            <div className="flex items-center gap-4">
-              <ModeToggle />
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white">
-                  3
-                </Badge>
-              </Button>
-
-              <Avatar>
-                <AvatarFallback className="bg-gradient-primary text-white">
-                  <User className="w-5 h-5" />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </header>
+          <Header onToggle={handleToggleSidebar} />
 
           <main className="flex-1 overflow-auto">{children}</main>
         </div>

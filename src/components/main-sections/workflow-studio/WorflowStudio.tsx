@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import type { CanvasState } from "../../utils/annotationUtils";
+import type { CanvasState } from "../../../utils/annotationUtils";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
@@ -389,7 +389,7 @@ const WorkflowEditorContent: React.FC = () => {
   );
 };
 
-const AnimatedWorkflowEditor: React.FC = () => {
+const WorkflowStudio: React.FC = () => {
   return (
     <FullscreenProvider>
       <CanvasControlsProvider>
@@ -399,4 +399,4 @@ const AnimatedWorkflowEditor: React.FC = () => {
   );
 };
 
-export default AnimatedWorkflowEditor;
+export default WorkflowStudio;
