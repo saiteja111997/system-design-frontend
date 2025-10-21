@@ -1,5 +1,5 @@
 import React from "react";
-import { TempConnectionLineProps } from "@/types/workflow-studio/components";
+import { TempConnectionLineProps } from "@/types/workflow-studio";
 
 export const TempConnectionLine: React.FC<TempConnectionLineProps> = ({
   tempLine,
