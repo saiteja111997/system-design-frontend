@@ -6,6 +6,7 @@ import { AnnotationLayer, type Tool } from "./AnnotationLayer";
 import type { CanvasState } from "@/utils/annotationUtils";
 import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface WorkflowCanvasWithAnnotationProps extends WorkflowCanvasProps {
   // Simple annotation props - no complexity!
@@ -140,6 +141,15 @@ export const WorkflowCanvas = forwardRef<
       };
     }, [ref, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
+    const handleAnnotationFinish = () => {
+      onAnnotationToolChange?.("select");
+      // Save snapshot when finishing drawing
+      const snapshot = internalAnnotationRef.current?.snapshot();
+      if (snapshot) {
+        onAnnotationSnapshotChange?.(snapshot);
+      }
+    };
+
     return (
       <motion.div
         ref={ref}
@@ -147,11 +157,12 @@ export const WorkflowCanvas = forwardRef<
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className={`flex-1 relative overflow-hidden ${
+        className={cn(
+          "flex-1 relative overflow-hidden bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
           isAnnotationLayerVisible && activeTool !== "select"
             ? "cursor-crosshair"
             : "cursor-grab active:cursor-grabbing"
-        } bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950`}
+        )}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMoveCanvas}
         onMouseUp={handleMouseUpCanvas}
@@ -183,30 +194,20 @@ export const WorkflowCanvas = forwardRef<
             runCode={runCode}
           />
 
-          {/* Annotation Layer - follows same transform as workflow */}
+          {/* Annotation Layer - inherits same transform as workflow */}
           {isAnnotationLayerVisible && (
-            <div className="absolute inset-0 z-20 pointer-events-none">
+            <div className="absolute inset-0 z-20 w-full h-full pointer-events-none">
               <AnnotationLayer
                 key="annotation-layer-stable"
                 ref={handleAnnotationLayerRef}
                 activeTool={activeTool}
-                onFinish={() => {
-                  onAnnotationToolChange?.("select");
-                  // Save snapshot when finishing drawing
-                  const snapshot = internalAnnotationRef.current?.snapshot();
-                  if (snapshot) {
-                    onAnnotationSnapshotChange?.(snapshot);
-                  }
-                }}
-                className="pointer-events-auto"
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: activeTool === "select" ? "none" : "auto",
-                }}
+                onFinish={handleAnnotationFinish}
+                className={cn(
+                  "absolute inset-0 w-full h-full",
+                  activeTool === "select"
+                    ? "pointer-events-none"
+                    : "pointer-events-auto"
+                )}
               />
             </div>
           )}

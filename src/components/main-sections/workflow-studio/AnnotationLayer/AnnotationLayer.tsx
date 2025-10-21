@@ -4,6 +4,7 @@ import React, { forwardRef } from "react";
 import type { AnnotationLayerHandle, AnnotationLayerProps } from "./types";
 import { useAnnotationInternal } from "./useAnnotationInternal";
 import { FallbackUI } from "./FallbackUI";
+import { cn } from "@/lib/utils";
 
 export const AnnotationLayer = forwardRef<
   AnnotationLayerHandle,
@@ -23,14 +24,10 @@ export const AnnotationLayer = forwardRef<
   return (
     <div
       ref={state.containerRef}
-      className={`annotation-layer-container ${props.className || ""}`}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
-        ...props.style,
-      }}
+      className={cn(
+        "annotation-layer-container relative w-full h-full overflow-hidden",
+        props.className
+      )}
       tabIndex={0}
       role="application"
       aria-label="Drawing canvas"
