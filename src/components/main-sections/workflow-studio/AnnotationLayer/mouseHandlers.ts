@@ -10,6 +10,7 @@ import {
   createArrow,
   createText,
   finalizeShape,
+  getDefaultDrawingConfig,
 } from "./canvasOperations";
 import type {
   FabricCanvas,
@@ -91,11 +92,10 @@ export function createMouseDownHandler(
           textObj.text !== textObj.__placeholderText
         ) {
           textObj.__isPlaceholder = false;
-          // Get the theme color
-          const isDark = document.documentElement.classList.contains("dark");
-          const textColor = isDark ? "#ffffff" : "#000000";
+          // Get the theme color using the proper function
+          const config = getDefaultDrawingConfig();
           textObj.set?.({
-            fill: textColor,
+            fill: config.strokeColor,
             fontStyle: "normal",
           });
           canvas.renderAll();

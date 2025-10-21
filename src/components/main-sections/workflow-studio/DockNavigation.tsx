@@ -25,7 +25,7 @@ const TOOL_ID_MAP: Record<string, string> = {
   "selection-tool": "select",
   "rectangle-tool": "rectangle",
   "ellipse-tool": "circle",
-  "free-draw": "freehand",
+  "free-draw": "freedraw",
 };
 
 const DockNavigation: React.FC<DockNavigationProps> = ({
