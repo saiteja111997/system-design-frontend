@@ -28,7 +28,7 @@ const isInteractiveElement = (target: HTMLElement): boolean =>
   Boolean(target.closest(INTERACTIVE_SELECTORS));
 
 const isPinchGesture = (event: WheelEvent | React.WheelEvent): boolean =>
-  event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 50;
+  event.ctrlKey || event.metaKey;
 
 const getTouchDistance = (touches: React.TouchList): number => {
   if (touches.length < 2) return 0;
@@ -60,6 +60,10 @@ export const useCanvasViewport = () => {
     initialScale: 1,
     startTransform: transform,
   });
+
+  // Keep current transform in ref for stable access in callbacks
+  const transformRef = useRef(transform);
+  transformRef.current = transform;
 
   // Zoom controls
   const zoomIn = useCallback(() => {
@@ -102,10 +106,10 @@ export const useCanvasViewport = () => {
 
       setIsPanning(true);
       lastPosition.current = { x: event.clientX, y: event.clientY };
-      panStartTransform.current = { ...transform };
+      panStartTransform.current = { ...transformRef.current };
       event.preventDefault();
     },
-    [transform]
+    [] // Removed transform dependency - using transformRef.current for stable access
   );
 
   const handlePanMove = useCallback(
@@ -116,12 +120,12 @@ export const useCanvasViewport = () => {
       const deltaY = event.clientY - lastPosition.current.y;
 
       setCanvasTransform({
-        ...transform,
+        ...transformRef.current,
         translateX: panStartTransform.current.translateX + deltaX,
         translateY: panStartTransform.current.translateY + deltaY,
       });
     },
-    [isPanning, transform, setCanvasTransform]
+    [isPanning, setCanvasTransform] // Removed transform dependency - using transformRef.current
   );
 
   const handlePanEnd = useCallback(() => {
@@ -138,19 +142,19 @@ export const useCanvasViewport = () => {
         event.preventDefault();
         touchState.current = {
           initialDistance: getTouchDistance(event.touches),
-          initialScale: transform.scale,
-          startTransform: { ...transform },
+          initialScale: transformRef.current.scale,
+          startTransform: { ...transformRef.current },
         };
       } else if (event.touches.length === 1) {
         // Pan
         const touch = event.touches[0];
         setIsPanning(true);
         lastPosition.current = { x: touch.clientX, y: touch.clientY };
-        panStartTransform.current = { ...transform };
+        panStartTransform.current = { ...transformRef.current };
         event.preventDefault();
       }
     },
-    [transform]
+    [] // Removed transform dependency - using transformRef.current for stable access
   );
 
   const handleTouchMove = useCallback(
@@ -176,13 +180,13 @@ export const useCanvasViewport = () => {
         const deltaY = touch.clientY - lastPosition.current.y;
 
         setCanvasTransform({
-          ...transform,
+          ...transformRef.current,
           translateX: panStartTransform.current.translateX + deltaX,
           translateY: panStartTransform.current.translateY + deltaY,
         });
       }
     },
-    [isPanning, transform, setCanvasTransform, updateCanvasTransform]
+    [isPanning, setCanvasTransform, updateCanvasTransform]
   );
 
   const handleTouchEnd = useCallback((event: React.TouchEvent) => {

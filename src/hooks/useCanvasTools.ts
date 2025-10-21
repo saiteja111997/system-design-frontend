@@ -17,7 +17,7 @@ export type CanvasTool =
 
 export type CanvasAction = "undo" | "redo" | "clear-all" | "fullscreen";
 
-interface ToolSettings {
+export interface ToolSettings {
   strokeWidth?: number;
   strokeColor?: string;
   fillColor?: string;
@@ -29,7 +29,7 @@ interface ToolSettings {
 interface UseCanvasToolsState {
   activeTool: CanvasTool;
   isDrawing: boolean;
-  toolSettings: Record<string, ToolSettings>;
+  toolSettings: Partial<Record<CanvasTool, ToolSettings>>;
 }
 
 export const useCanvasTools = () => {

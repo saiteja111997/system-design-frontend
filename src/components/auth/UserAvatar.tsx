@@ -78,7 +78,7 @@ export function UserAvatar() {
         open={showLogoutModal}
         onOpenChange={setShowLogoutModal}
         title="Logout"
-        description="Are you sure you want to logout from your account?"
+        description="Are you sure you want to log out from your account?"
         confirmText="Logout"
         cancelText="Cancel"
         onConfirm={handleSignOut}

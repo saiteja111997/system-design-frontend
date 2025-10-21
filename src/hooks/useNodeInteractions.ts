@@ -141,7 +141,7 @@ export const useNodeInteractions = ({
     setTempLine(null);
   }, [setConnecting, setTempLine]);
 
-  // Delete node with confirmation
+  // Delete node
   const handleNodeDelete = useCallback(
     (nodeId: number) => {
       deleteNode(nodeId);

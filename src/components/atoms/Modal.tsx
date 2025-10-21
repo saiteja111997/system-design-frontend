@@ -8,13 +8,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface ModalProps {
+interface BaseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title?: string;
   description?: string;
   children: React.ReactNode;
 }
+
+// Ensure either title or ariaLabel is provided for accessibility
+type ModalProps = BaseModalProps &
+  (
+    | { title: string; ariaLabel?: string }
+    | { title?: undefined; ariaLabel: string }
+  );
 
 export function Modal({
   open,
@@ -22,13 +28,21 @@ export function Modal({
   title,
   description,
   children,
+  ariaLabel,
 }: ModalProps) {
+  // Ensure accessibility: either title or ariaLabel must be provided
+  if (!title && !ariaLabel) {
+    console.warn(
+      "Modal: Either 'title' or 'ariaLabel' prop must be provided for accessibility."
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        {(title || description) && (
+      <DialogContent aria-label={!title ? ariaLabel : undefined}>
+        {title && (
           <DialogHeader>
-            {title && <DialogTitle>{title}</DialogTitle>}
+            <DialogTitle>{title}</DialogTitle>
             {description && (
               <DialogDescription>{description}</DialogDescription>
             )}

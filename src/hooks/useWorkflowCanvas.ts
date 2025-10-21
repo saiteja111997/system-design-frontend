@@ -94,6 +94,16 @@ export const useWorkflowCanvas = ({ canvasRef }: UseWorkflowCanvasProps) => {
   // Keyboard shortcuts
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // Don't trigger shortcuts when user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
           case "z":
@@ -125,15 +135,19 @@ export const useWorkflowCanvas = ({ canvasRef }: UseWorkflowCanvasProps) => {
       // Tool shortcuts
       switch (e.key) {
         case "v":
+          e.preventDefault();
           tools.setActiveTool("selection-tool");
           break;
         case "r":
+          e.preventDefault();
           tools.setActiveTool("rectangle-tool");
           break;
         case "o":
+          e.preventDefault();
           tools.setActiveTool("ellipse-tool");
           break;
         case "p":
+          e.preventDefault();
           tools.setActiveTool("free-draw");
           break;
         case "t":
