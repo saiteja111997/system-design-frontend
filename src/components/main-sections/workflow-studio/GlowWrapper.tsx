@@ -1,9 +1,9 @@
 import React from "react";
-import { GlowType } from "@/types/workflow-editor/workflow";
+import { GlowType } from "@/types/workflow-studio";
 import {
   GlowWrapperProps,
   DatabaseGlowWrapperProps,
-} from "@/types/workflow-editor/components";
+} from "@/types/workflow-studio";
 import { getNodeGlowConfig } from "@/utils/stylingUtils";
 import "@/styles/workflowAnimations.css";
 

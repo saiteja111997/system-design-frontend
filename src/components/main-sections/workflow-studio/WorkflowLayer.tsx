@@ -10,7 +10,7 @@ import {
   TempLine,
   NodeHandlers,
   EdgeHandlers,
-} from "@/types/workflow-editor/workflow";
+} from "@/types/workflow-studio/workflow";
 
 interface WorkflowLayerProps {
   nodes: Node[];
@@ -53,7 +53,7 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
       let maxX = -Infinity;
       let maxY = -Infinity;
 
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         minX = Math.min(minX, node.x - nodeSize / 2);
         minY = Math.min(minY, node.y - nodeSize / 2);
         maxX = Math.max(maxX, node.x + nodeSize / 2);
@@ -79,7 +79,7 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
         style={globalAnimationStyle}
       >
         {/* SVG for edges - transform handled by parent container */}
-        <svg 
+        <svg
           className="absolute pointer-events-none"
           style={{
             left: `${bounds.minX}px`,

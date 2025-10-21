@@ -1,5 +1,5 @@
 import React from "react";
-import { WorkflowFooterProps } from "@/types/workflow-editor/components";
+import { WorkflowFooterProps } from "@/types/workflow-studio";
 
 export const WorkflowFooter: React.FC<WorkflowFooterProps> = ({
   nodeCount,

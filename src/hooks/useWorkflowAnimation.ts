@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 import { useWorkflowContext } from "@/contexts/WorkflowContext";
-import {
-  EdgeStyle,
-  NodeGlowConfig,
-  GlowType,
-} from "@/types/workflow-editor/workflow";
+import { EdgeStyle, NodeGlowConfig, GlowType } from "@/types/workflow-studio";
 import { calculateAnimationDuration } from "@/utils/animationUtils";
 import {
   getEdgeStyle,

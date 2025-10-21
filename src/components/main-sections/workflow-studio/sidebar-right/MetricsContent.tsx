@@ -6,7 +6,7 @@ import {
   getLoadColor,
   getRPSColor,
 } from "@/utils/serverMetrics";
-import { MetricsContentProps } from "@/types/workflow-editor/sidebar-right";
+import { MetricsContentProps } from "@/types/workflow-studio/sidebar-right";
 
 const MetricsContent: React.FC<MetricsContentProps> = ({
   requestsPerSecond,

@@ -2,7 +2,7 @@ import {
   RPSValue,
   RPSRange,
   AnimationDuration,
-} from "@/types/workflow-editor/workflow";
+} from "@/types/workflow-studio/workflow";
 
 /**
  * Animation utility functions

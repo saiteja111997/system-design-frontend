@@ -1,4 +1,4 @@
-import { Node, Edge } from "@/types/workflow-editor/workflow";
+import { Node, Edge } from "@/types/workflow-studio/workflow";
 
 /**
  * Generates a unique ID for new nodes

@@ -6,7 +6,7 @@ import {
   EdgeGradientType,
   EdgeAnimationClass,
   NodeGlowClass,
-} from "@/types/workflow-editor/workflow";
+} from "@/types/workflow-studio/workflow";
 
 /**
  * Styling utility functions

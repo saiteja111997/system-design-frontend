@@ -7,7 +7,7 @@ import {
   ToggleButton,
   FooterSettings,
 } from ".";
-import { SidebarRightProps } from "@/types/workflow-editor/sidebar-right";
+import { SidebarRightProps } from "@/types/workflow-studio/sidebar-right";
 
 const SidebarRight: React.FC<SidebarRightProps> = ({
   requestsPerSecond,

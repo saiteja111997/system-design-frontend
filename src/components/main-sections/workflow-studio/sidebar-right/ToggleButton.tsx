@@ -1,7 +1,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ToggleButtonProps } from "@/types/workflow-editor/sidebar-right";
+import { ToggleButtonProps } from "@/types/workflow-studio/sidebar-right";
 
 const ToggleButton: React.FC<ToggleButtonProps> = ({
   sidebarExpanded,

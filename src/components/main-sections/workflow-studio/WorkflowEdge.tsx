@@ -1,5 +1,5 @@
 import React from "react";
-import { WorkflowEdgeProps } from "@/types/workflow-editor/components";
+import { WorkflowEdgeProps } from "@/types/workflow-studio/components";
 import { calculatePortToPortPath } from "@/utils/workflow";
 import { useEdgeAnimation } from "@/hooks/useWorkflowAnimation";
 import "@/styles/workflowAnimations.css";

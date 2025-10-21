@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import type { CanvasState } from "../../../utils/annotationUtils";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
+import { NodeHandlers, EdgeHandlers } from "@/types/workflow-studio/workflow";
 import { WorkflowHeader, WorkflowCanvas, WorkflowFooter } from ".";
 import { useWorkflowStore } from "@/stores/workflowStore";
 import { useWorkflowCanvas } from "@/hooks/useWorkflowCanvas";

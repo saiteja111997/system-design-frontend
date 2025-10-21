@@ -5,8 +5,8 @@ import EditNodeContent from "./EditNodeContent";
 import AnalyticsContent from "./AnalyticsContent";
 import MetricsContent from "./MetricsContent";
 import CollapsedState from "./CollapsedState";
-import { sidebarDockItems } from "@/data/sidebarDockItems";
-import { MainContentAreaProps } from "@/types/workflow-editor/sidebar-right";
+import { sidebarRightItems } from "@/data/sidebarRightItems";
+import { MainContentAreaProps } from "@/types/workflow-studio/sidebar-right";
 
 const MainContentArea: React.FC<MainContentAreaProps> = ({
   sidebarExpanded,
@@ -43,7 +43,7 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
 
       default:
         // Find the dock item content for other tabs
-        const selectedItem = sidebarDockItems.find(
+        const selectedItem = sidebarRightItems.find(
           (item) => item.id === selectedTab
         );
         return selectedItem?.content || null;

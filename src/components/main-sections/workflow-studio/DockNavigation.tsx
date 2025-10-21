@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-
-export interface DockItem {
-  id: string;
-  name: string;
-  tooltip: string;
-  route?: string;
-  component: React.ReactNode;
-  content?: React.ReactNode; // Optional content for sidebar usage
-}
+import { SidebarRightItem } from "@/types/workflow-studio/sidebar-right";
 
 interface DockNavigationProps {
   activeItem?: string | null;
@@ -19,7 +11,7 @@ interface DockNavigationProps {
   responsive?: "top" | "bottom" | "left" | "right" | "top-left";
   direction?: "horizontal" | "vertical"; // New prop to control layout direction
   tooltipPosition?: "left" | "right" | "top" | "bottom"; // New prop to control tooltip placement
-  items: DockItem[]; // Accept items as prop
+  items: SidebarRightItem[]; // Accept items as prop
   onItemClick?: (itemId: string, index: number) => void; // Optional custom click handler
   onMouseEnter?: (index: number) => void; // Optional mouse enter handler
   onMouseLeave?: () => void; // Optional mouse leave handler
@@ -231,7 +223,7 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
         animate={{ opacity: isDockVisible ? 1 : 0 }}
         transition={{ duration: 0.2 }}
       >
-        {items.map((item: DockItem, index: number) => {
+        {items.map((item: SidebarRightItem, index: number) => {
           // Determine if current item matches active tool
           const mappingToUse = idMapping || TOOL_ID_MAP;
           const isActive =

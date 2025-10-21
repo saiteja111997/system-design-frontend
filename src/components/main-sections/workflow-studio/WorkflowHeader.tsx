@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus } from "lucide-react";
-import { WorkflowHeaderProps } from "@/types/workflow-editor/components";
+import { WorkflowHeaderProps } from "@/types/workflow-studio";
 import { motion } from "framer-motion";
 
 export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
@@ -13,7 +13,8 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
         ease: "easeOut",
         delay: 0.1,
       }}
-    className="bg-gradient-to-r from-white to-gray-50 dark:from-slate-950 dark:to-slate-950 border-b border-gray-200 dark:border-slate-800 px-8 py-5 flex items-center justify-between">
+      className="bg-gradient-to-r from-white to-gray-50 dark:from-slate-950 dark:to-slate-950 border-b border-gray-200 dark:border-slate-800 px-8 py-5 flex items-center justify-between"
+    >
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
           System Design Workflow Editor

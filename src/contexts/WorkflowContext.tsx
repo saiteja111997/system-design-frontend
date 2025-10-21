@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { RPSValue, RPSRange, GlowType } from "@/types/workflow-editor/workflow";
+import { RPSValue, RPSRange, GlowType } from "@/types/workflow-studio/workflow";
 
 // Context interface
 interface WorkflowContextType {

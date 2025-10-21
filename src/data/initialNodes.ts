@@ -1,5 +1,5 @@
-import { Node, Edge } from "@/types/workflow-editor/workflow";
-import { nodeOptions } from "@/data/nodeTypeOptions";
+import { Node, Edge } from "@/types/workflow-studio";
+import { nodeOptions } from "@/data/nodeOptions";
 
 // Helper function to create a node from nodeOptions with position
 const createNodeFromOption = (

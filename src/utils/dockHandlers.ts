@@ -1,4 +1,4 @@
-import { CanvasControlsHook } from "@/types/canvas";
+import { CanvasControlsHook } from "@/types/workflow-studio/canvas";
 import type { Tool } from "@/components/main-sections/workflow-studio/AnnotationLayer";
 
 export interface DockItemHandlers {

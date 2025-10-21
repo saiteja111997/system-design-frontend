@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
-import { SidebarHeaderProps } from "@/types/workflow-editor/sidebar-right";
+import { SidebarHeaderProps } from "@/types/workflow-studio/sidebar-right";
 
 const SidebarHeader: React.FC<SidebarHeaderProps> = ({ sidebarExpanded }) => {
   return (

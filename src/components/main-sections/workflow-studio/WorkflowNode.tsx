@@ -19,7 +19,7 @@ import {
   Link,
   Circle,
 } from "lucide-react";
-import { WorkflowNodeProps } from "@/types/workflow-editor/components";
+import { WorkflowNodeProps } from "@/types/workflow-studio/components";
 import { getNodeClasses, getNodeTextClasses } from "@/utils/workflow";
 import { useNodeAnimation } from "@/hooks/useWorkflowAnimation";
 import { shouldNodeGlow } from "@/utils/stylingUtils";

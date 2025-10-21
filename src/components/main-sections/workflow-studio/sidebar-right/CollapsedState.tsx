@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { sidebarDockItems } from "@/data/sidebarDockItems";
-import { CollapsedStateProps } from "@/types/workflow-editor/sidebar-right";
+import { sidebarRightItems } from "@/data/sidebarRightItems";
+import { CollapsedStateProps } from "@/types/workflow-studio/sidebar-right";
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +18,7 @@ const CollapsedState: React.FC<CollapsedStateProps> = ({ onTabChange }) => {
       className="flex flex-col items-center space-y-2 py-4 overflow-hidden"
     >
       {/* Vertical Navigation with Tooltips */}
-      {sidebarDockItems.map((item, index) => (
+      {sidebarRightItems.map((item, index) => (
         <motion.div
           key={item.id}
           initial={{ opacity: 0, scale: 0.8 }}

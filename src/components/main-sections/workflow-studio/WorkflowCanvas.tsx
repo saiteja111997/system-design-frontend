@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useRef, useCallback } from "react";
-import { WorkflowCanvasProps } from "@/types/workflow-editor/components";
+import { WorkflowCanvasProps } from "@/types/workflow-studio";
 import { WorkflowLayer } from "./WorkflowLayer";
 import { CanvasGrid } from "./CanvasGrid";
 import { AnnotationLayer, type Tool } from "./AnnotationLayer";

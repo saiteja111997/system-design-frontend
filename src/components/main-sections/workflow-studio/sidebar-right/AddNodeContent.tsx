@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { nodeOptions, nodeCategories, nodeTypes } from "@/data/nodeTypeOptions";
-import { AddNodeContentProps } from "@/types/workflow-editor/sidebar-right";
+import { nodeOptions, nodeCategories, nodeTypes } from "@/data/nodeOptions";
+import { AddNodeContentProps } from "@/types/workflow-studio/sidebar-right";
 import ConfigurationForm from "./ConfigurationForm";
 
 const AddNodeContent: React.FC<AddNodeContentProps> = ({ onAddNode }) => {

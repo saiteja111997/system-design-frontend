@@ -1,4 +1,31 @@
-import { Node } from "../workflow";
+/**
+ * ======================================================================
+ * SIDEBAR RIGHT - COMPONENT TYPE DEFINITIONS
+ * ======================================================================
+ *
+ * Types specific to the right sidebar components and their functionality.
+ * Maintains separation from core workflow types while importing needed types.
+ */
+
+import { Node, NodeConfiguration } from "../workflow";
+
+// ======================================================================
+// SIDEBAR STRUCTURE TYPES
+// ======================================================================
+
+// Right Sidebar Navigation Item
+export interface SidebarRightItem {
+  id: string;
+  name: string;
+  tooltip: string;
+  route?: string;
+  component: React.ReactNode;
+  content?: React.ReactNode; // Optional content for sidebar usage
+}
+
+// ======================================================================
+// MAIN SIDEBAR PROPS
+// ======================================================================
 
 // Main SidebarRight Props
 export interface SidebarRightProps {
@@ -15,6 +42,10 @@ export interface SidebarRightProps {
     updates: { label: string; icon: string }
   ) => void;
 }
+
+// ======================================================================
+// SIDEBAR LAYOUT COMPONENT PROPS
+// ======================================================================
 
 // Header Component Props
 export interface SidebarHeaderProps {
@@ -96,4 +127,15 @@ export interface ToggleButtonProps {
 // Footer Settings Props
 export interface FooterSettingsProps {
   sidebarExpanded: boolean;
+}
+
+// ======================================================================
+// FORM COMPONENT PROPS
+// ======================================================================
+
+// Configuration Form Props (sidebar-right specific)
+export interface ConfigurationFormProps {
+  configurations: NodeConfiguration;
+  values: Record<string, string | number | boolean>;
+  onChange: (key: string, value: string | number | boolean) => void;
 }

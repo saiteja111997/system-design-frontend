@@ -6,8 +6,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { Node, NodeType } from "@/types/workflow-editor/workflow";
-import { WorkflowStore, WorkflowState } from "@/types/workflow-editor/store";
+import { Node, NodeType } from "@/types/workflow-studio/workflow";
+import { WorkflowStore, WorkflowStoreState } from "@/types/workflow-studio";
 import {
   generateNodeId,
   generateEdgeId,
@@ -15,10 +15,10 @@ import {
   edgeExists,
   filterEdgesForNode,
 } from "@/utils/workflow";
-import { initialNodes, initialEdges } from "@/data/workflowInitials";
+import { initialNodes, initialEdges } from "@/data/initialNodes";
 
 // Initial state
-const initialState: WorkflowState = {
+const initialState: WorkflowStoreState = {
   nodes: initialNodes,
   edges: initialEdges,
   selectedNode: null,

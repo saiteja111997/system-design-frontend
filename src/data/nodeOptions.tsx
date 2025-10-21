@@ -15,40 +15,14 @@ import {
   Activity,
   Link,
 } from "lucide-react";
-
-// Configuration field types
-export interface ConfigField {
-  key: string;
-  label: string;
-  type: "number" | "text" | "select" | "boolean";
-  unit?: string;
-  options?: { value: string; label: string }[];
-  defaultValue: string | number | boolean;
-  min?: number;
-  max?: number;
-}
-
-export interface NodeConfiguration {
-  [key: string]: ConfigField;
-}
-
-export interface NodeOption {
-  id: string;
-  label: string;
-  icon: string;
-  category: string;
-  component: React.ReactNode;
-  configurations: NodeConfiguration;
-}
-
-export interface NodeType {
-  id: string;
-  label: string;
-  description: string;
-}
+import {
+  NodeOption,
+  NodeDefinition,
+  NodeCategory,
+} from "@/types/workflow-studio";
 
 // Available categories
-export const nodeCategories = [
+export const nodeCategories: NodeCategory[] = [
   "Entry Layer",
   "Routing & Compute",
   "Data & Storage",
@@ -57,7 +31,7 @@ export const nodeCategories = [
 ];
 
 // Node types for workflow positioning
-export const nodeTypes: NodeType[] = [
+export const nodeTypes: NodeDefinition[] = [
   {
     id: "start",
     label: "Start Node",

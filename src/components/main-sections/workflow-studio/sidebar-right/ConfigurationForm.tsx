@@ -7,20 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ConfigField, NodeConfiguration } from "@/data/nodeTypeOptions";
-
-interface ConfigurationFormProps {
-  configurations: NodeConfiguration;
-  values: Record<string, string | number | boolean>;
-  onChange: (key: string, value: string | number | boolean) => void;
-}
+import { NodeConfigField, ConfigSelectOption } from "@/types/workflow-studio";
+import { ConfigurationFormProps } from "@/types/workflow-studio/sidebar-right";
 
 const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
   configurations,
   values,
   onChange,
 }) => {
-  const renderField = (field: ConfigField) => {
+  const renderField = (field: NodeConfigField) => {
     const value = values[field.key] ?? field.defaultValue;
 
     switch (field.type) {
@@ -88,7 +83,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {field.options?.map((option) => (
+                {field.options?.map((option: ConfigSelectOption) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>

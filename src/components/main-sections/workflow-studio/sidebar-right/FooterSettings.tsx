@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FooterSettingsProps } from "@/types/workflow-editor/sidebar-right";
+import { FooterSettingsProps } from "@/types/workflow-studio/sidebar-right";
 
 const FooterSettings: React.FC<FooterSettingsProps> = ({ sidebarExpanded }) => {
   return (

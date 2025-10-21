@@ -13,4 +13,4 @@ export { default as MetricsContent } from "./MetricsContent";
 export { default as CollapsedState } from "./CollapsedState";
 
 // Type exports
-export * from "@/types/workflow-editor/sidebar-right";
+export * from "@/types/workflow-studio/sidebar-right";
