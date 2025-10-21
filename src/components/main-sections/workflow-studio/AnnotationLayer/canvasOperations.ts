@@ -92,10 +92,8 @@ export function getDefaultDrawingConfig(
   } else if (typeof window !== "undefined") {
     const root = document.documentElement;
 
-    // Tailwind / manual class toggle has highest priority for mode detection
-    if (root.classList.contains("dark")) {
-      isDark = true;
-    }
+    // Check for dark class on html element
+    isDark = root.classList.contains("dark");
 
     // If a custom stroke color is provided via CSS variable we honor it directly
     const annotationStroke = getComputedStyle(root)
@@ -109,14 +107,14 @@ export function getDefaultDrawingConfig(
       };
     }
 
-    // Fallback to system preference only if class not explicitly set
-    if (!theme && !root.classList.contains("dark")) {
+    // If no explicit dark class and no theme param, fallback to system preference
+    if (!theme && !root.classList.contains("dark") && !root.classList.contains("light")) {
       isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
   }
 
-  // Use pure white / pure black for maximum contrast instead of mid gray (#222) / light gray (#e5e7eb)
-  // This fixes the reported issue where lines were not visible enough in light mode.
+  // Use pure white for dark mode / pure black for light mode for maximum contrast
+  // This ensures drawings are always visible regardless of theme
   const themeColor = isDark ? "#ffffff" : "#000000";
 
   return {
@@ -447,6 +445,12 @@ export function updateCanvasMode(
     if (["text"].includes(activeTool)) return "text";
     return null;
   })();
+
+  // Update brush colors when switching to drawing tools
+  // This ensures the brush uses the current theme colors
+  if (normalizedTool && normalizedTool !== "select") {
+    configureBrush(canvas, getDefaultDrawingConfig());
+  }
 
   // Only freehand drawing enables drawing mode
   if (normalizedTool === "freehand") {
