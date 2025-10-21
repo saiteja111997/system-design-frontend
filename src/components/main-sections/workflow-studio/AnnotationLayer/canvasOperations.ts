@@ -117,8 +117,6 @@ export function getDefaultDrawingConfig(
   // This ensures drawings are always visible regardless of theme
   const themeColor = isDark ? "#ffffff" : "#000000";
 
-  console.log(`[AnnotationLayer] Theme detection: isDark=${isDark}, color=${themeColor}, hasClass=${typeof window !== "undefined" ? document.documentElement.classList.contains("dark") : "unknown"}`);
-
   return {
     ...DEFAULT_DRAWING_CONFIG,
     strokeColor: themeColor,
