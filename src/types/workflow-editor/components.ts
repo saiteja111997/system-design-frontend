@@ -74,7 +74,12 @@ export interface DatabaseGlowWrapperProps {
   className?: string;
 }
 
-// Hook Props
+// Hook Props - Deprecated, kept for backward compatibility
+// Use the new optimized hooks instead:
+// - useNodeInteractions for node operations
+// - useCanvasCoordinates for coordinate transformations
+// - useCanvasViewport for viewport management
+// - useWorkflowCanvas for unified canvas functionality
 export interface UseWorkflowInteractionsProps {
   nodes: Node[];
   draggingNode: number | null;

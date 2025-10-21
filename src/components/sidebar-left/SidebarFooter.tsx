@@ -13,6 +13,7 @@ import {
 import { ChevronUp, LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { AuthDialog } from "../auth/AuthDialog";
+import { ConfirmationModal } from "../atoms/ConfirmationModal";
 import { getUserInitials, getUserDisplayName } from "@/utils/userUtils";
 import { toast } from "sonner";
 
@@ -25,8 +26,13 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 }) => {
   const { user, loading, signOut } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = async () => {
     try {
       await signOut();
       toast.success("Signed out successfully");
@@ -131,7 +137,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
             Settings
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={handleSignOut}
+            onClick={handleLogoutClick}
             className="text-red-600 cursor-pointer"
           >
             <LogOut className="w-4 h-4 mr-2" />
@@ -139,6 +145,18 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ConfirmationModal
+        open={showLogoutModal}
+        onOpenChange={setShowLogoutModal}
+        title="Logout"
+        description="Are you sure you want to logout from your account?"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutModal(false)}
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </motion.div>
   );
 };

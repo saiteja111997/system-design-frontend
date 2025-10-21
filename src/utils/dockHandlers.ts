@@ -24,12 +24,12 @@ export const createDockItemHandlers = (
     clearAll?: () => void;
   }
 ): DockItemHandlers => {
-  const { zoomIn, zoomOut, resetZoom } = canvasControls;
+  const { zoomIn, zoomOut, resetViewport } = canvasControls;
 
   return {
     handleZoomIn: zoomIn,
     handleZoomOut: zoomOut,
-    handleResetZoom: resetZoom,
+    handleResetZoom: resetViewport,
     handleFullscreen: fullscreenHandlers?.toggleFullscreen || (() => {}),
     handleAnnotationTool: annotationHandlers?.setActiveTool || (() => {}),
     handleUndo: annotationHandlers?.undo || (() => {}),

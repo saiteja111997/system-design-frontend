@@ -1,5 +1,5 @@
 import {
-  Sparkles,
+  // Sparkles,
   MousePointer,
   Square,
   Circle,

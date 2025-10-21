@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -11,11 +12,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/auth-context";
 import { getUserInitials, getUserDisplayName } from "@/utils/userUtils";
+import { ConfirmationModal } from "@/components/atoms/ConfirmationModal";
 import { LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 
 export function UserAvatar() {
   const { user, signOut } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -26,6 +29,10 @@ export function UserAvatar() {
         error instanceof Error ? error.message : "Failed to sign out";
       toast.error(message);
     }
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
   };
 
   if (!user) return null;
@@ -59,13 +66,24 @@ export function UserAvatar() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={handleSignOut}
+          onClick={handleLogoutClick}
           className="cursor-pointer text-red-600 dark:text-red-400"
         >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <ConfirmationModal
+        open={showLogoutModal}
+        onOpenChange={setShowLogoutModal}
+        title="Logout"
+        description="Are you sure you want to logout from your account?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        onConfirm={handleSignOut}
+        variant="destructive"
+      />
     </DropdownMenu>
   );
 }

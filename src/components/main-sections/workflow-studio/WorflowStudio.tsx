@@ -4,8 +4,8 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { NodeHandlers, EdgeHandlers } from "@/types/workflow-editor/workflow";
 import { WorkflowHeader, WorkflowCanvas, WorkflowFooter } from ".";
-import { useWorkflowStore } from "@/hooks/useWorkflowStore";
-import { useWorkflowInteractions } from "@/hooks/useWorkflowInteractions";
+import { useWorkflowStore } from "@/stores/workflowStore";
+import { useWorkflowCanvas } from "@/hooks/useWorkflowCanvas";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { CanvasControlsProvider } from "@/contexts/CanvasControlsContext";
 import {
@@ -13,7 +13,6 @@ import {
   useFullscreenContext,
 } from "@/contexts/FullscreenContext";
 import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
-import { MIN_ZOOM, MAX_ZOOM } from "@/hooks/useCanvasControls";
 import { canvasDockItems } from "@/data/canvasDockItems";
 import {
   createDockItemHandlers,
@@ -229,6 +228,7 @@ const WorkflowEditorContent: React.FC = () => {
 
   // Canvas controls - clean and simple!
   const canvasControls = useCanvasControlsContext();
+  const { MIN_ZOOM, MAX_ZOOM } = canvasControls;
   const dockHandlers = createDockItemHandlers(
     canvasControls,
     { toggleFullscreen: handleFullscreenToggle },
@@ -295,26 +295,23 @@ const WorkflowEditorContent: React.FC = () => {
   );
   const setRunCode = useWorkflowStore((state) => state.setRunCode);
 
-  // Optimized interaction handlers
+  // Optimized interaction handlers using the new hook architecture
+  const workflowCanvas = useWorkflowCanvas({ canvasRef });
   const {
-    handleNodeMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    handleNodeClick,
-    handleStartConnection,
-    handleEndConnection,
-    handleDeleteNode,
-  } = useWorkflowInteractions({
-    canvasRef,
-  });
+    handleNodeSelect,
+    handleNodeDragStart,
+    handleConnectionStart,
+    handleConnectionEnd,
+    handleNodeDelete,
+  } = workflowCanvas.nodeInteractions;
 
   // Handler objects for cleaner prop passing
   const nodeHandlers: NodeHandlers = {
-    onMouseDown: handleNodeMouseDown,
-    onClick: (nodeId: number) => handleNodeClick(nodeId, selectedNode),
-    onStartConnection: handleStartConnection,
-    onEndConnection: handleEndConnection,
-    onDelete: handleDeleteNode,
+    onMouseDown: handleNodeDragStart,
+    onClick: (nodeId: number) => handleNodeSelect(nodeId, selectedNode),
+    onStartConnection: handleConnectionStart,
+    onEndConnection: handleConnectionEnd,
+    onDelete: handleNodeDelete,
   };
 
   const edgeHandlers: EdgeHandlers = {
@@ -334,7 +331,7 @@ const WorkflowEditorContent: React.FC = () => {
 
           <div
             className="flex-1 flex flex-col select-none bg-white dark:bg-slate-950 relative"
-            onMouseLeave={handleMouseUp}
+            onMouseLeave={workflowCanvas.handleMouseUp}
             ref={containerRef}
           >
             {/* Workflow Canvas */}
@@ -348,8 +345,8 @@ const WorkflowEditorContent: React.FC = () => {
                 draggingNode={draggingNode}
                 nodeHandlers={nodeHandlers}
                 edgeHandlers={edgeHandlers}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onMouseMove={workflowCanvas.handleMouseMove}
+                onMouseUp={workflowCanvas.handleMouseUp}
                 runCode={runCode}
                 activeTool={activeTool}
                 isAnnotationLayerVisible={isAnnotationLayerVisible}
@@ -385,7 +382,7 @@ const WorkflowEditorContent: React.FC = () => {
                   minZoom={MIN_ZOOM}
                   maxZoom={MAX_ZOOM}
                   onZoomChange={canvasControls.setZoom}
-                  onResetZoom={canvasControls.resetZoom}
+                  onResetZoom={canvasControls.resetViewport}
                 />
               </div>
             </div>

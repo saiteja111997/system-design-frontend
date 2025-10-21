@@ -5,7 +5,7 @@ import { DashboardView } from "@/components/main-sections/dashboard/DashboardVie
 import { NewVideoView } from "@/components/main-sections/new-video-view/NewVideoView";
 import { AIResearchView } from "@/components/main-sections/ai-assistant/AIResearchView";
 import { AnalyticsView } from "@/components/main-sections/analytics/AnalyticsView";
-import { MainLayout } from "@/components/MainLayout";
+import { MainLayout } from "@/app/MainLayout";
 import WorkflowStudio from "@/components/main-sections/workflow-studio/WorflowStudio";
 
 export default function Dashboard() {

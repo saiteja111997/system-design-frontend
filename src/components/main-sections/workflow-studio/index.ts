@@ -8,4 +8,3 @@ export { CanvasGrid } from "./CanvasGrid";
 export { SvgDefinitions } from "./SvgDefinitions";
 export { TempConnectionLine } from "./TempConnectionLine";
 export { GlowWrapper } from "./GlowWrapper";
-export { useWorkflowInteractions } from "@/hooks/useWorkflowInteractions";

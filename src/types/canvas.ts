@@ -10,11 +10,17 @@ export interface CanvasTransform {
 
 export interface CanvasControlsHook {
   transform: CanvasTransform;
-  isDragging: boolean;
+  isPanning: boolean;
   zoomIn: () => void;
   zoomOut: () => void;
-  resetZoom: () => void;
   setZoom: (scale: number) => void;
+  resetViewport: () => void;
+  zoomToFit: (bounds?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => void;
   handlePanStart: (event: React.MouseEvent) => void;
   handlePanMove: (event: React.MouseEvent) => void;
   handlePanEnd: () => void;
@@ -23,4 +29,6 @@ export interface CanvasControlsHook {
   handleTouchEnd: (event: React.TouchEvent) => void;
   handleWheel: (event: React.WheelEvent) => void;
   getCanvasTransformStyle: () => React.CSSProperties;
+  MIN_ZOOM: number;
+  MAX_ZOOM: number;
 }
