@@ -8,10 +8,30 @@ export const generateNodeId = (existingNodes: Node[]): number => {
 };
 
 /**
- * Generates a unique ID for new edges
+ * Generates a unique ID for new edges with number
  */
-export const generateEdgeId = (): string => {
-  return `e${Date.now()}`;
+export const generateEdgeId = (existingEdges: Edge[]): string => {
+  const edgeNumber = existingEdges.length + 1;
+  return `e${Date.now()}-${edgeNumber}`;
+};
+
+/**
+ * Extracts edge number from edge ID
+ * Handles both old format (e{timestamp}) and new format (e{timestamp}-{number})
+ */
+export const getEdgeNumber = (edgeId: string, allEdges?: Edge[]): number => {
+  const parts = edgeId.split("-");
+  if (parts.length > 1) {
+    // New format: e{timestamp}-{number}
+    return parseInt(parts[1]);
+  } else {
+    // Old format: e{timestamp} - assign number based on position in array
+    if (allEdges) {
+      const index = allEdges.findIndex((edge) => edge.id === edgeId);
+      return index >= 0 ? index + 1 : 1;
+    }
+    return 1;
+  }
 };
 
 /**

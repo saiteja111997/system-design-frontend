@@ -8,7 +8,7 @@ export { default as FooterSettings } from "./FooterSettings";
 // Content component exports
 export { default as AddNodeContent } from "./AddNodeContent";
 export { default as EditNodeContent } from "./EditNodeContent";
-export { default as AnalyticsContent } from "./AnalyticsContent";
+export { default as AnalyticsContent } from "./SelectedEdgeNodeSummary";
 export { default as MetricsContent } from "./MetricsContent";
 export { default as CollapsedState } from "./CollapsedState";
 

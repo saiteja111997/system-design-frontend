@@ -35,20 +35,19 @@ export const sidebarRightItems: SidebarRightItem[] = [
     ),
   },
   {
-    id: "analytics",
-    name: "Analytics",
-    tooltip: "Analytics",
+    id: "selected-edge/node",
+    name: "Selected Edge/Node",
+    tooltip: "Selected Edge/Node",
     component: (
       <BarChart3 size={16} className="text-slate-700 dark:text-white" />
     ),
     content: (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-          Analytics
+          Selected Edge/Node
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          View system performance metrics, load balancing data, and throughput
-          statistics.
+          View detailed metrics and configuration for the selected edge or node.
         </p>
       </div>
     ),

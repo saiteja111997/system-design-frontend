@@ -105,7 +105,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
         set((state) => {
           if (!edgeExists(state.edges, source, target)) {
             state.edges.push({
-              id: generateEdgeId(),
+              id: generateEdgeId(state.edges),
               source,
               target,
             });

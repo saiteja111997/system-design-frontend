@@ -2,11 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import AddNodeContent from "./AddNodeContent";
 import EditNodeContent from "./EditNodeContent";
-import AnalyticsContent from "./AnalyticsContent";
 import MetricsContent from "./MetricsContent";
 import CollapsedState from "./CollapsedState";
 import { sidebarRightItems } from "@/data/sidebarRightItems";
 import { MainContentAreaProps } from "@/types/workflow-studio/sidebar-right";
+import SelectedEdgeNodeSummary from "./SelectedEdgeNodeSummary";
 
 const MainContentArea: React.FC<MainContentAreaProps> = ({
   sidebarExpanded,
@@ -31,7 +31,7 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
         return <EditNodeContent nodes={nodes} onUpdateNode={onUpdateNode} />;
 
       case "analytics":
-        return <AnalyticsContent />;
+        return <SelectedEdgeNodeSummary />;
 
       case "metrics":
         return (

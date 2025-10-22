@@ -194,6 +194,7 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
             handlers.onDelete(node.id);
           }}
           className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 transition-all shadow-md hover:shadow-red-500/50 hover:scale-110"
+          style={{ zIndex: 100 }}
         >
           <Trash2 size={12} />
         </button>

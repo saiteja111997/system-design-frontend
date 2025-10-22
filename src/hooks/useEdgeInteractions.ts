@@ -10,7 +10,6 @@ export const useEdgeInteractions = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
 
   // Zustand selectors - subscribe only to what we need
-  const edges = useWorkflowStore((state) => state.edges);
   const selectedEdge = useWorkflowStore((state) => state.selectedEdge);
   const sidebarRightExpanded = useWorkflowStore(
     (state) => state.sidebarRightExpanded
@@ -28,8 +27,6 @@ export const useEdgeInteractions = () => {
   // Edge selection with toggle behavior and logging
   const handleEdgeSelect = useCallback(
     (edgeId: string) => {
-      // If edge is already selected, don't deselect it (keep it selected)
-      // This prevents deselection when delete interactions occur
       if (selectedEdge === edgeId) {
         // console.log("🔗 Edge Already Selected - Keeping Selection:", edgeId);
         return;
@@ -43,20 +40,12 @@ export const useEdgeInteractions = () => {
       if (!sidebarRightExpanded) {
         setSidebarRightExpanded(true);
       }
-      setSelectedTab("analytics");
-
-      const edge = edges.find((e) => e.id === edgeId);
-      console.log(
-        "🔗 Edge Selected:",
-        edgeId,
-        `${edge?.source}->${edge?.target}`
-      );
+      setSelectedTab("selected-edge/node");
     },
     [
       selectedEdge,
       setSelectedEdge,
       setSelectedNode,
-      edges,
       sidebarRightExpanded,
       setSidebarRightExpanded,
       setSelectedTab,
@@ -66,33 +55,21 @@ export const useEdgeInteractions = () => {
   // Handle edge click - selection when not selected, delete modal when selected
   const handleEdgeClick = useCallback(
     (e: React.MouseEvent, edgeId: string) => {
+      console.log("Edge clicked:", edgeId);
       e.stopPropagation();
-
-      if (selectedEdge === edgeId) {
-        // If edge is already selected, show delete confirmation
-        setShowDeleteModal(edgeId);
-      } else {
-        // If not selected, select it
-        handleEdgeSelect(edgeId);
-      }
+      // If not selected, select it
+      handleEdgeSelect(edgeId);
     },
-    [selectedEdge, handleEdgeSelect]
+    [handleEdgeSelect]
   );
 
   // Handle delete confirmation
   const handleConfirmDelete = useCallback(
     (edgeId: string) => {
-      const edge = edges.find((e) => e.id === edgeId);
-      console.log(
-        "🗑️ Edge Deleted:",
-        edgeId,
-        `${edge?.source}->${edge?.target}`
-      );
-
       deleteEdge(edgeId);
       setShowDeleteModal(null);
     },
-    [deleteEdge, edges]
+    [deleteEdge]
   );
 
   // Handle cancel delete
@@ -103,16 +80,9 @@ export const useEdgeInteractions = () => {
   // Delete edge directly (for context menu or keyboard shortcuts)
   const handleEdgeDelete = useCallback(
     (edgeId: string) => {
-      const edge = edges.find((e) => e.id === edgeId);
-      console.log(
-        "🗑️ Edge Deleted (Direct):",
-        edgeId,
-        `${edge?.source}->${edge?.target}`
-      );
-
       deleteEdge(edgeId);
     },
-    [deleteEdge, edges]
+    [deleteEdge]
   );
 
   return {

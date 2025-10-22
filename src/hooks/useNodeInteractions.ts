@@ -59,7 +59,7 @@ export const useNodeInteractions = ({
       // If node is already selected, don't deselect it (keep it selected)
       // This prevents deselection when delete button click bubbles up
       if (selectedNode === nodeId) {
-        console.log("🎯 Node Already Selected - Keeping Selection:", nodeId);
+        // console.log("🎯 Node Already Selected - Keeping Selection:", nodeId);
         return;
       }
 
@@ -72,21 +72,11 @@ export const useNodeInteractions = ({
         setSidebarRightExpanded(true);
       }
       setSelectedTab("analytics");
-
-      const node = nodes.find((n) => n.id === nodeId);
-      console.log("🎯 Node Selected:", {
-        id: nodeId,
-        label: node?.label,
-        type: node?.type,
-        position: { x: node?.x, y: node?.y },
-        node: node,
-      });
     },
     [
       selectedNode,
       setSelectedNode,
       setSelectedEdge,
-      nodes,
       sidebarRightExpanded,
       setSidebarRightExpanded,
       setSelectedTab,
@@ -213,18 +203,12 @@ export const useNodeInteractions = ({
   // Delete node
   const handleNodeDelete = useCallback(
     (nodeId: number) => {
-      const node = nodes.find((n) => n.id === nodeId);
-      console.log("🗑️ Node Delete Requested:", {
-        id: nodeId,
-        label: node?.label,
-        node: node,
-      });
 
       deleteNode(nodeId);
 
       console.log("🗑️ Node Deleted Successfully:", nodeId);
     },
-    [deleteNode, nodes]
+    [deleteNode]
   );
 
   return {

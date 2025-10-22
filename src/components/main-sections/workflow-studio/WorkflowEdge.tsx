@@ -11,7 +11,6 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
   runCode = false,
   isSelected = false,
 }) => {
-
   const path = calculatePortToPortPath(
     sourceNode.x,
     sourceNode.y,
@@ -21,11 +20,9 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
 
   const { edgeStyle, animationStyle } = useEdgeAnimation();
 
-  // Handle edge click - selection when not selected, delete modal when selected
-  const handleEdgeClick = (e: React.MouseEvent) => {
+  // Handle edge mouse up - same pattern as nodes
+  const handleEdgeMouseUp = (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // If not selected, select it
     handlers.onSelect(edge.id);
   };
 
@@ -67,7 +64,7 @@ export const WorkflowEdge: React.FC<WorkflowEdgeProps> = ({
         strokeWidth="12"
         fill="none"
         strokeLinecap="round"
-        onClick={handleEdgeClick}
+        onMouseUp={handleEdgeMouseUp}
         style={{
           cursor: "pointer",
         }}

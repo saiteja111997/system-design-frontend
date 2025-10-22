@@ -320,6 +320,7 @@ const WorkflowEditorContent: React.FC = () => {
     // Only clear selection if we weren't dragging a node
     // This prevents clearing selection when finishing a node drag
     if (!wasDragging) {
+      console.log("🖱️ Canvas clicked - Clearing selection");
       clearSelection();
     }
   };
