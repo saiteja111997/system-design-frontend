@@ -136,7 +136,7 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
   return (
     <div
       onMouseDown={(e) => handlers.onMouseDown(e, node.id)}
-      onClick={() => handlers.onClick(node.id)}
+      onClick={() => handlers.onSelect(node.id)}
       className={`workflow-node ${getNodeClasses(
         node.type,
         isSelected,

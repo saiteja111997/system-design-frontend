@@ -22,10 +22,13 @@ const initialState: WorkflowStoreState = {
   nodes: initialNodes,
   edges: initialEdges,
   selectedNode: null,
+  selectedEdge: null,
   draggingNode: null,
   dragOffset: { x: 0, y: 0 },
   connecting: null,
   tempLine: null,
+  sidebarRightExpanded: false,
+  selectedTab: null,
   requestsPerSecond: 1,
   runCode: false,
   canvasTransform: {
@@ -123,6 +126,12 @@ export const useWorkflowStore = create<WorkflowStore>()(
         });
       },
 
+      setSelectedEdge: (id) => {
+        set((state) => {
+          state.selectedEdge = id;
+        });
+      },
+
       setDraggingNode: (id) => {
         set((state) => {
           state.draggingNode = id;
@@ -144,6 +153,19 @@ export const useWorkflowStore = create<WorkflowStore>()(
       setTempLine: (line) => {
         set((state) => {
           state.tempLine = line;
+        });
+      },
+
+      // Sidebar setters
+      setSidebarRightExpanded: (expanded) => {
+        set((state) => {
+          state.sidebarRightExpanded = expanded;
+        });
+      },
+
+      setSelectedTab: (tab) => {
+        set((state) => {
+          state.selectedTab = tab;
         });
       },
 
@@ -194,9 +216,13 @@ export const useWorkflowStore = create<WorkflowStore>()(
       clearSelection: () => {
         set((state) => {
           state.selectedNode = null;
+          state.selectedEdge = null;
           state.draggingNode = null;
           state.connecting = null;
           state.tempLine = null;
+          // Also collapse sidebar when clearing all selections
+          state.sidebarRightExpanded = false;
+          state.selectedTab = null;
         });
       },
     })),

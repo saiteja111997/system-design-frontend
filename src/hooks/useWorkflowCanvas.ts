@@ -5,6 +5,7 @@
 
 import { useCallback, useMemo } from "react";
 import { useNodeInteractions } from "./useNodeInteractions";
+import { useEdgeInteractions } from "./useEdgeInteractions";
 import { useCanvasCoordinates } from "./useCanvasCoordinates";
 import { useCanvasViewport } from "./useCanvasViewport";
 import { useCanvasTools } from "./useCanvasTools";
@@ -27,6 +28,9 @@ export const useWorkflowCanvas = ({ canvasRef }: UseWorkflowCanvasProps) => {
   const nodeInteractions = useNodeInteractions({
     getCanvasCoordinates: coordinates.getCanvasCoordinates,
   });
+
+  // Initialize edge interactions
+  const edgeInteractions = useEdgeInteractions();
 
   // Unified mouse move handler that delegates to appropriate handlers
   const handleMouseMove = useCallback(
@@ -204,6 +208,7 @@ export const useWorkflowCanvas = ({ canvasRef }: UseWorkflowCanvasProps) => {
     viewport,
     tools,
     nodeInteractions,
+    edgeInteractions,
 
     // Unified event handlers
     canvasEventHandlers,

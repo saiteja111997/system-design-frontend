@@ -40,6 +40,15 @@ export const SvgDefinitions: React.FC = () => {
         </feMerge>
       </filter>
 
+      {/* Selection glow filter for edges */}
+      <filter id="edgeSelectionGlow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+        <feMerge>
+          <feMergeNode in="coloredBlur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+
       {/* Arrow marker */}
       <marker
         id="arrowhead"

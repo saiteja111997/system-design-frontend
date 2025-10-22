@@ -265,6 +265,7 @@ const WorkflowEditorContent: React.FC = () => {
   const nodes = useWorkflowStore((state) => state.nodes);
   const edges = useWorkflowStore((state) => state.edges);
   const selectedNode = useWorkflowStore((state) => state.selectedNode);
+  const selectedEdge = useWorkflowStore((state) => state.selectedEdge);
   const draggingNode = useWorkflowStore((state) => state.draggingNode);
   const tempLine = useWorkflowStore((state) => state.tempLine);
   const requestsPerSecond = useWorkflowStore(
@@ -272,23 +273,9 @@ const WorkflowEditorContent: React.FC = () => {
   );
   const runCode = useWorkflowStore((state) => state.runCode);
 
-  // Log node coordinates whenever nodes change
-  useEffect(() => {
-    console.log("🎯 Current Node Coordinates:");
-    console.table(
-      nodes.map((node) => ({
-        ID: node.id,
-        Label: node.label,
-        X: node.x,
-        Y: node.y,
-        Type: node.type,
-      }))
-    );
-  }, [nodes]);
-
   // Actions using direct Zustand selectors
   const addNode = useWorkflowStore((state) => state.addNode);
-  const deleteEdge = useWorkflowStore((state) => state.deleteEdge);
+  const clearSelection = useWorkflowStore((state) => state.clearSelection);
   const updateNode = useWorkflowStore((state) => state.updateNode);
   const setRequestsPerSecond = useWorkflowStore(
     (state) => state.setRequestsPerSecond
@@ -305,17 +292,36 @@ const WorkflowEditorContent: React.FC = () => {
     handleNodeDelete,
   } = workflowCanvas.nodeInteractions;
 
+  const { handleEdgeSelect, handleEdgeDelete } =
+    workflowCanvas.edgeInteractions;
+
   // Handler objects for cleaner prop passing
   const nodeHandlers: NodeHandlers = {
     onMouseDown: handleNodeDragStart,
-    onClick: (nodeId: number) => handleNodeSelect(nodeId, selectedNode),
+    onSelect: (nodeId: number) => handleNodeSelect(nodeId),
     onStartConnection: handleConnectionStart,
     onEndConnection: handleConnectionEnd,
-    onDelete: handleNodeDelete,
+    onDelete: (nodeId: number) => handleNodeDelete(nodeId),
   };
 
   const edgeHandlers: EdgeHandlers = {
-    onDelete: deleteEdge,
+    onDelete: (edgeId: string) => handleEdgeDelete(edgeId),
+    onSelect: (edgeId: string) => handleEdgeSelect(edgeId),
+  };
+
+  // Custom mouse up handler to clear selections when clicking on canvas background
+  const handleCanvasMouseUp = () => {
+    // Check if we're ending a drag operation before calling the handler
+    const wasDragging = draggingNode !== null;
+
+    // Call the original handler (this will clear draggingNode)
+    workflowCanvas.handleMouseUp();
+
+    // Only clear selection if we weren't dragging a node
+    // This prevents clearing selection when finishing a node drag
+    if (!wasDragging) {
+      clearSelection();
+    }
   };
 
   const workflowContent = (
@@ -342,11 +348,12 @@ const WorkflowEditorContent: React.FC = () => {
                 edges={edges}
                 tempLine={tempLine}
                 selectedNode={selectedNode}
+                selectedEdge={selectedEdge}
                 draggingNode={draggingNode}
                 nodeHandlers={nodeHandlers}
                 edgeHandlers={edgeHandlers}
                 onMouseMove={workflowCanvas.handleMouseMove}
-                onMouseUp={workflowCanvas.handleMouseUp}
+                onMouseUp={handleCanvasMouseUp}
                 runCode={runCode}
                 activeTool={activeTool}
                 isAnnotationLayerVisible={isAnnotationLayerVisible}

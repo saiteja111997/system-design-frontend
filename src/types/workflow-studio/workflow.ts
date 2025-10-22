@@ -203,6 +203,7 @@ export interface WorkflowState {
   nodes: Node[];
   edges: Edge[];
   selectedNode: number | null;
+  selectedEdge: string | null;
   draggingNode: number | null;
   dragOffset: DragOffset;
   connecting: number | null;
@@ -217,10 +218,15 @@ export interface WorkflowStoreState {
 
   // UI state
   selectedNode: number | null;
+  selectedEdge: string | null;
   draggingNode: number | null;
   dragOffset: DragOffset;
   connecting: number | null;
   tempLine: TempLine | null;
+
+  // Sidebar state
+  sidebarRightExpanded: boolean;
+  selectedTab: string | null;
 
   // Simulation state
   requestsPerSecond: number;
@@ -249,10 +255,15 @@ export interface WorkflowActions {
 
   // UI state setters
   setSelectedNode: (id: number | null) => void;
+  setSelectedEdge: (id: string | null) => void;
   setDraggingNode: (id: number | null) => void;
   setDragOffset: (offset: DragOffset) => void;
   setConnecting: (id: number | null) => void;
   setTempLine: (line: TempLine | null) => void;
+
+  // Sidebar setters
+  setSidebarRightExpanded: (expanded: boolean) => void;
+  setSelectedTab: (tab: string | null) => void;
 
   // Simulation setters
   setRequestsPerSecond: (value: number) => void;
@@ -289,7 +300,7 @@ export interface WorkflowPersistConfig {
 // Node event handlers
 export interface NodeHandlers {
   onMouseDown: (e: React.MouseEvent, nodeId: number) => void;
-  onClick: (nodeId: number) => void;
+  onSelect: (nodeId: number) => void;
   onStartConnection: (e: React.MouseEvent, nodeId: number) => void;
   onEndConnection: (e: React.MouseEvent, targetId: number) => void;
   onDelete: (nodeId: number) => void;
@@ -298,6 +309,7 @@ export interface NodeHandlers {
 // Edge event handlers
 export interface EdgeHandlers {
   onDelete: (edgeId: string) => void;
+  onSelect: (edgeId: string) => void;
 }
 
 // ======================================================================
@@ -310,6 +322,7 @@ export interface WorkflowCanvasProps {
   edges: Edge[];
   tempLine: TempLine | null;
   selectedNode: number | null;
+  selectedEdge: string | null;
   draggingNode: number | null;
   nodeHandlers: NodeHandlers;
   edgeHandlers: EdgeHandlers;
@@ -333,6 +346,7 @@ export interface WorkflowEdgeProps {
   targetNode: Node;
   handlers: EdgeHandlers;
   runCode?: boolean;
+  isSelected?: boolean;
 }
 
 // Temp Connection Line Props

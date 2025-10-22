@@ -29,6 +29,7 @@ export const WorkflowCanvas = forwardRef<
       edges,
       tempLine,
       selectedNode,
+      selectedEdge,
       draggingNode,
       nodeHandlers,
       edgeHandlers,
@@ -188,6 +189,7 @@ export const WorkflowCanvas = forwardRef<
             edges={edges}
             tempLine={tempLine}
             selectedNode={selectedNode}
+            selectedEdge={selectedEdge}
             draggingNode={draggingNode}
             nodeHandlers={nodeHandlers}
             edgeHandlers={edgeHandlers}

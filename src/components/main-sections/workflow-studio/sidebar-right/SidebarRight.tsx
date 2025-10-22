@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   SidebarHeader,
@@ -8,6 +8,7 @@ import {
   FooterSettings,
 } from ".";
 import { SidebarRightProps } from "@/types/workflow-studio/sidebar-right";
+import { useWorkflowStore } from "@/stores/workflowStore";
 
 const SidebarRight: React.FC<SidebarRightProps> = ({
   requestsPerSecond,
@@ -16,8 +17,15 @@ const SidebarRight: React.FC<SidebarRightProps> = ({
   onAddNode,
   onUpdateNode,
 }) => {
-  const [sidebarExpanded, setSidebarExpanded] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<string | null>(null);
+  // Use Zustand store for sidebar state instead of local state
+  const sidebarExpanded = useWorkflowStore(
+    (state) => state.sidebarRightExpanded
+  );
+  const setSidebarExpanded = useWorkflowStore(
+    (state) => state.setSidebarRightExpanded
+  );
+  const selectedTab = useWorkflowStore((state) => state.selectedTab);
+  const setSelectedTab = useWorkflowStore((state) => state.setSelectedTab);
 
   const handleToggleSidebar = () => {
     setSidebarExpanded(!sidebarExpanded);

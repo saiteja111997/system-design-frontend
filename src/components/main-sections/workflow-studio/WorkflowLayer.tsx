@@ -17,6 +17,7 @@ interface WorkflowLayerProps {
   edges: Edge[];
   tempLine: TempLine | null;
   selectedNode: number | null;
+  selectedEdge: string | null;
   draggingNode: number | null;
   nodeHandlers: NodeHandlers;
   edgeHandlers: EdgeHandlers;
@@ -30,6 +31,7 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
       edges,
       tempLine,
       selectedNode,
+      selectedEdge,
       draggingNode,
       nodeHandlers,
       edgeHandlers,
@@ -80,12 +82,13 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
       >
         {/* SVG for edges - transform handled by parent container */}
         <svg
-          className="absolute pointer-events-none"
+          className="absolute"
           style={{
             left: `${bounds.minX}px`,
             top: `${bounds.minY}px`,
             width: `${svgWidth}px`,
             height: `${svgHeight}px`,
+            zIndex: 5, // Below nodes (10) but above background
           }}
           viewBox={`${bounds.minX} ${bounds.minY} ${svgWidth} ${svgHeight}`}
         >
@@ -108,6 +111,7 @@ export const WorkflowLayer = forwardRef<HTMLDivElement, WorkflowLayerProps>(
                   targetNode={targetNode}
                   handlers={edgeHandlers}
                   runCode={runCode}
+                  isSelected={selectedEdge === edge.id}
                 />
               );
             })}

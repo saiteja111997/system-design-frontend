@@ -221,3 +221,30 @@
   /* Optimize for animations */
   transform: translateZ(0);
 }
+
+/* Edge interaction styles */
+.workflow-edge:hover .workflow-edge-hover {
+  stroke-opacity: 0.4 !important;
+}
+
+.workflow-edge.selected .workflow-edge-hover {
+  stroke-opacity: 0 !important;
+}
+
+.workflow-edge:hover .workflow-edge-background {
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4));
+}
+
+.workflow-edge.selected .workflow-edge-background {
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));
+}
+
+/* Red glow hover effect when edge is selected */
+.workflow-edge.selected:hover .workflow-edge-background {
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)) !important;
+}
+
+.workflow-edge.selected:hover .workflow-edge-hover {
+  stroke: #ef4444 !important;
+  stroke-opacity: 0.6 !important;
+}

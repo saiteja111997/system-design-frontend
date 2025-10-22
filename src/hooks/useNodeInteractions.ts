@@ -3,7 +3,7 @@
  * Separated from canvas coordinate logic for better maintainability
  */
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useWorkflowStore } from "@/stores/workflowStore";
 
 interface UseNodeInteractionsProps {
@@ -16,30 +16,81 @@ interface UseNodeInteractionsProps {
 export const useNodeInteractions = ({
   getCanvasCoordinates,
 }: UseNodeInteractionsProps) => {
+  // Track drag state to prevent selection after drag
+  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
+  const hasDragged = useRef<boolean>(false);
+
   // Zustand selectors - subscribe only to what we need
   const nodes = useWorkflowStore((state) => state.nodes);
+  const selectedNode = useWorkflowStore((state) => state.selectedNode);
   const draggingNode = useWorkflowStore((state) => state.draggingNode);
   const dragOffset = useWorkflowStore((state) => state.dragOffset);
   const connecting = useWorkflowStore((state) => state.connecting);
+  const sidebarRightExpanded = useWorkflowStore(
+    (state) => state.sidebarRightExpanded
+  );
 
   // Actions
   const setSelectedNode = useWorkflowStore((state) => state.setSelectedNode);
+  const setSelectedEdge = useWorkflowStore((state) => state.setSelectedEdge);
   const setDraggingNode = useWorkflowStore((state) => state.setDraggingNode);
   const setDragOffset = useWorkflowStore((state) => state.setDragOffset);
   const setConnecting = useWorkflowStore((state) => state.setConnecting);
   const setTempLine = useWorkflowStore((state) => state.setTempLine);
+  const setSidebarRightExpanded = useWorkflowStore(
+    (state) => state.setSidebarRightExpanded
+  );
+  const setSelectedTab = useWorkflowStore((state) => state.setSelectedTab);
   const updateNodePosition = useWorkflowStore(
     (state) => state.updateNodePosition
   );
   const addEdge = useWorkflowStore((state) => state.addEdge);
   const deleteNode = useWorkflowStore((state) => state.deleteNode);
 
-  // Node selection with toggle behavior
+  // Node selection with toggle behavior and logging
   const handleNodeSelect = useCallback(
-    (nodeId: number, currentSelectedNode: number | null) => {
-      setSelectedNode(currentSelectedNode === nodeId ? null : nodeId);
+    (nodeId: number) => {
+      // Don't select if a drag just occurred
+      if (hasDragged.current) {
+        hasDragged.current = false; // Reset for next interaction
+        return;
+      }
+
+      // If node is already selected, don't deselect it (keep it selected)
+      // This prevents deselection when delete button click bubbles up
+      if (selectedNode === nodeId) {
+        console.log("🎯 Node Already Selected - Keeping Selection:", nodeId);
+        return;
+      }
+
+      // Only select if it's a different node
+      setSelectedEdge(null); // Clear edge selection when node is selected
+      setSelectedNode(nodeId);
+
+      // Expand sidebar and set analytics tab when selecting a new node
+      if (!sidebarRightExpanded) {
+        setSidebarRightExpanded(true);
+      }
+      setSelectedTab("analytics");
+
+      const node = nodes.find((n) => n.id === nodeId);
+      console.log("🎯 Node Selected:", {
+        id: nodeId,
+        label: node?.label,
+        type: node?.type,
+        position: { x: node?.x, y: node?.y },
+        node: node,
+      });
     },
-    [setSelectedNode]
+    [
+      selectedNode,
+      setSelectedNode,
+      setSelectedEdge,
+      nodes,
+      sidebarRightExpanded,
+      setSidebarRightExpanded,
+      setSelectedTab,
+    ]
   );
 
   // Start dragging a node
@@ -52,6 +103,10 @@ export const useNodeInteractions = ({
 
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
+
+      // Track initial mouse position for drag detection
+      dragStartPos.current = { x: e.clientX, y: e.clientY };
+      hasDragged.current = false;
 
       const canvasCoords = getCanvasCoordinates(e.clientX, e.clientY);
       setDraggingNode(nodeId);
@@ -68,6 +123,17 @@ export const useNodeInteractions = ({
     (e: React.MouseEvent) => {
       if (draggingNode === null) return;
 
+      // Check if we've moved enough to consider this a drag operation
+      if (dragStartPos.current && !hasDragged.current) {
+        const deltaX = Math.abs(e.clientX - dragStartPos.current.x);
+        const deltaY = Math.abs(e.clientY - dragStartPos.current.y);
+        const dragThreshold = 3; // Minimum pixels to consider as drag
+
+        if (deltaX > dragThreshold || deltaY > dragThreshold) {
+          hasDragged.current = true;
+        }
+      }
+
       const canvasCoords = getCanvasCoordinates(e.clientX, e.clientY);
       const newX = canvasCoords.x - dragOffset.x;
       const newY = canvasCoords.y - dragOffset.y;
@@ -80,6 +146,9 @@ export const useNodeInteractions = ({
   // End node dragging
   const handleNodeDragEnd = useCallback(() => {
     setDraggingNode(null);
+    // Note: We don't reset hasDragged here because onClick will fire after this
+    // and we need to check if dragging occurred to prevent selection
+    dragStartPos.current = null;
   }, [setDraggingNode]);
 
   // Start connection from node
@@ -144,9 +213,18 @@ export const useNodeInteractions = ({
   // Delete node
   const handleNodeDelete = useCallback(
     (nodeId: number) => {
+      const node = nodes.find((n) => n.id === nodeId);
+      console.log("🗑️ Node Delete Requested:", {
+        id: nodeId,
+        label: node?.label,
+        node: node,
+      });
+
       deleteNode(nodeId);
+
+      console.log("🗑️ Node Deleted Successfully:", nodeId);
     },
-    [deleteNode]
+    [deleteNode, nodes]
   );
 
   return {
