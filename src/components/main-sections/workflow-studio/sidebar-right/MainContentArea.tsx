@@ -30,7 +30,7 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
       case "edit-node":
         return <EditNodeContent nodes={nodes} onUpdateNode={onUpdateNode} />;
 
-      case "analytics":
+      case "selected-edge/node":
         return <SelectedEdgeNodeSummary />;
 
       case "metrics":

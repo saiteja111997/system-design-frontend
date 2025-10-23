@@ -170,6 +170,9 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
           e.stopPropagation();
           handlers.onStartConnection(e, node.id);
         }}
+        onMouseUp={(e) => {
+          e.stopPropagation();
+        }}
         className="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full cursor-crosshair shadow-md hover:shadow-blue-500/60 hover:scale-110 transition-all border border-white dark:border-slate-900"
         title="Drag to connect"
       />

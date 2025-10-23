@@ -71,7 +71,7 @@ export const useNodeInteractions = ({
       if (!sidebarRightExpanded) {
         setSidebarRightExpanded(true);
       }
-      setSelectedTab("analytics");
+      setSelectedTab("selected-edge/node");
     },
     [
       selectedNode,
