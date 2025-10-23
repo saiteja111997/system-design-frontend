@@ -1,9 +1,21 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { WorkflowHeaderProps } from "@/types/workflow-studio";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useWorkflowStore } from "@/stores/workflowStore";
 
 export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
+  const setSelectedTab = useWorkflowStore((state) => state.setSelectedTab);
+  const setSidebarExpanded = useWorkflowStore(
+    (state) => state.setSidebarRightExpanded
+  );
+
+  const handleChatWithAI = () => {
+    setSelectedTab("ai-assistant");
+    setSidebarExpanded(true);
+  };
+
   return (
     <motion.div
       initial={{ y: -50, opacity: 0 }}
@@ -23,10 +35,14 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
           Drag nodes • Drag from output to create connections • Click to select
         </p>
       </div>
-      <button className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg transition-all shadow-lg hover:shadow-blue-500/50 font-semibold">
-        <Plus size={20} />
-        Add Node
-      </button>
+      <Button 
+        onClick={handleChatWithAI}
+        size="lg" 
+        className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/50 font-semibold"
+      >
+        <MessageCircle size={20} />
+        Chat with AI
+      </Button>
     </motion.div>
   );
 };

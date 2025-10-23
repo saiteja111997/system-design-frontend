@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SidebarRightItem } from "@/types/workflow-studio/sidebar-right";
 
-interface DockNavigationProps {
+interface DockComponentProps {
   activeItem?: string | null;
   position?: "top" | "bottom" | "left" | "right" | "top-left";
   collapsible?: boolean;
@@ -28,7 +28,7 @@ const TOOL_ID_MAP: Record<string, string> = {
   "free-draw": "freedraw",
 };
 
-const DockNavigation: React.FC<DockNavigationProps> = ({
+const DockComponent: React.FC<DockComponentProps> = ({
   position,
   collapsible = false,
   responsive,
@@ -262,4 +262,4 @@ const DockNavigation: React.FC<DockNavigationProps> = ({
   );
 };
 
-export default DockNavigation;
+export default DockComponent;

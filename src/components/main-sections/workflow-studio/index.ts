@@ -1,10 +1,9 @@
 export { WorkflowHeader } from "./WorkflowHeader";
 export { WorkflowCanvas } from "./WorkflowCanvas";
-export { WorkflowLayer } from "./WorkflowLayer";
+export { WorkflowLayer } from "./workflow-layer/WorkflowLayer";
 export { WorkflowFooter } from "./WorkflowFooter";
-export { WorkflowNode } from "./WorkflowNode";
-export { WorkflowEdge } from "./WorkflowEdge";
+export { WorkflowNode } from "./workflow-layer/WorkflowNode";
+export { WorkflowEdge } from "./workflow-layer/WorkflowEdge";
 export { CanvasGrid } from "./CanvasGrid";
-export { SvgDefinitions } from "./SvgDefinitions";
-export { TempConnectionLine } from "./TempConnectionLine";
-export { GlowWrapper } from "./GlowWrapper";
+export { SvgDefinitions } from "./workflow-layer/SvgDefinitions";
+export { TempConnectionLine } from "./workflow-layer/TempConnectionLine";

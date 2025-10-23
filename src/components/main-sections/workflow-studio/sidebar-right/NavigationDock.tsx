@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import DockNavigation from "../DockNavigation";
 import { sidebarRightItems } from "@/data/sidebarRightItems";
-import { NavigationTabsProps } from "@/types/workflow-studio/sidebar-right";
+import { NavigationDockProps } from "@/types/workflow-studio/sidebar-right";
+import DockComponent from "../../../atoms/DockComponent";
 
-const NavigationTabs: React.FC<NavigationTabsProps> = ({
+const NavigationDock: React.FC<NavigationDockProps> = ({
   sidebarExpanded,
   selectedTab,
   onTabChange,
@@ -18,7 +18,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
       transition={{ duration: 0.2 }}
       className="px-4 pb-4 overflow-hidden"
     >
-      <DockNavigation
+      <DockComponent
         position="top"
         responsive="top"
         collapsible={false}
@@ -31,4 +31,4 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
   );
 };
 
-export default NavigationTabs;
+export default NavigationDock;

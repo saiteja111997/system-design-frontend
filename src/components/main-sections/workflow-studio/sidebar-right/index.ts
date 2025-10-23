@@ -1,15 +1,15 @@
 // Main component exports
 export { default as SidebarHeader } from "./SidebarHeader";
-export { default as NavigationTabs } from "./NavigationTabs";
-export { default as MainContentArea } from "./MainContentArea";
+export { default as NavigationTabs } from "./NavigationDock";
+export { default as MainContentArea } from "./main-content-area/MainContentArea";
 export { default as ToggleButton } from "./ToggleButton";
 export { default as FooterSettings } from "./FooterSettings";
 
 // Content component exports
-export { default as AddNodeContent } from "./AddNodeContent";
-export { default as EditNodeContent } from "./EditNodeContent";
-export { default as AnalyticsContent } from "./SelectedEdgeNodeSummary";
-export { default as MetricsContent } from "./MetricsContent";
+export { default as AddNodeContent } from "./main-content-area/AddNodeContent";
+export { default as EditNodeContent } from "./main-content-area/EditNodeContent";
+export { default as AnalyticsContent } from "./main-content-area/SelectedEdgeNodeSummary";
+export { default as MetricsContent } from "./main-content-area/MetricsContent";
 export { default as CollapsedState } from "./CollapsedState";
 
 // Type exports

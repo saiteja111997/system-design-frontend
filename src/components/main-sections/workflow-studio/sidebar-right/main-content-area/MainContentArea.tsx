@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import AddNodeContent from "./AddNodeContent";
 import EditNodeContent from "./EditNodeContent";
 import MetricsContent from "./MetricsContent";
-import CollapsedState from "./CollapsedState";
-import { sidebarRightItems } from "@/data/sidebarRightItems";
+import CollapsedState from "../CollapsedState";
 import { MainContentAreaProps } from "@/types/workflow-studio/sidebar-right";
 import SelectedEdgeNodeSummary from "./SelectedEdgeNodeSummary";
+import AiAssistantContent from "./AiAssistantContent";
+import NotFoundContent from "./NotFoundContent";
 
 const MainContentArea: React.FC<MainContentAreaProps> = ({
   sidebarExpanded,
@@ -41,12 +42,12 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
           />
         );
 
+      case "ai-assistant":
+        return <AiAssistantContent />;
+
       default:
-        // Find the dock item content for other tabs
-        const selectedItem = sidebarRightItems.find(
-          (item) => item.id === selectedTab
-        );
-        return selectedItem?.content || null;
+        // Fallback for unknown tabs
+        return <NotFoundContent selectedTab={selectedTab} />;
     }
   };
 

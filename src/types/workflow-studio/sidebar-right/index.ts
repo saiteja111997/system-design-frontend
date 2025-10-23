@@ -20,7 +20,6 @@ export interface SidebarRightItem {
   tooltip: string;
   route?: string;
   component: React.ReactNode;
-  content?: React.ReactNode; // Optional content for sidebar usage
 }
 
 // ======================================================================
@@ -52,8 +51,8 @@ export interface SidebarHeaderProps {
   sidebarExpanded: boolean;
 }
 
-// Navigation Tabs Props
-export interface NavigationTabsProps {
+// Navigation Dock Props
+export interface NavigationDockProps {
   sidebarExpanded: boolean;
   selectedTab: string | null;
   onTabChange: (tabId: string) => void;

@@ -1,8 +1,8 @@
 import React, { forwardRef, useEffect, useRef, useCallback } from "react";
 import { WorkflowCanvasProps } from "@/types/workflow-studio";
-import { WorkflowLayer } from "./WorkflowLayer";
+import { WorkflowLayer } from "./workflow-layer/WorkflowLayer";
 import { CanvasGrid } from "./CanvasGrid";
-import { AnnotationLayer, type Tool } from "./AnnotationLayer";
+import { AnnotationLayer, type Tool } from "./annotation-layer";
 import type { CanvasState } from "@/utils/annotationUtils";
 import { useCanvasControlsContext } from "@/contexts/CanvasControlsContext";
 import { motion } from "framer-motion";
@@ -13,7 +13,7 @@ interface WorkflowCanvasWithAnnotationProps extends WorkflowCanvasProps {
   activeTool?: Tool;
   isAnnotationLayerVisible?: boolean;
   annotationLayerRef?: React.MutableRefObject<
-    import("./AnnotationLayer").AnnotationLayerHandle | null
+    import("./annotation-layer").AnnotationLayerHandle | null
   >;
   onAnnotationToolChange?: (tool: Tool) => void;
   onAnnotationSnapshotChange?: (snapshot: CanvasState | null) => void;
@@ -58,7 +58,7 @@ export const WorkflowCanvas = forwardRef<
 
     // Internal ref for annotation layer
     const internalAnnotationRef = useRef<
-      import("./AnnotationLayer").AnnotationLayerHandle | null
+      import("./annotation-layer").AnnotationLayerHandle | null
     >(null);
 
     // Connect internal ref to parent ref whenever the annotation layer component changes
@@ -70,7 +70,7 @@ export const WorkflowCanvas = forwardRef<
 
     // Also create a callback ref to ensure immediate connection when AnnotationLayer mounts
     const handleAnnotationLayerRef = useCallback(
-      (element: import("./AnnotationLayer").AnnotationLayerHandle | null) => {
+      (element: import("./annotation-layer").AnnotationLayerHandle | null) => {
         internalAnnotationRef.current = element;
         if (annotationLayerRef) {
           annotationLayerRef.current = element;
@@ -113,15 +113,12 @@ export const WorkflowCanvas = forwardRef<
       if (!canvasDiv) return;
 
       const nativeTouchStart = (e: TouchEvent) => {
-        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
         handleTouchStart(e);
       };
       const nativeTouchMove = (e: TouchEvent) => {
-        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
         handleTouchMove(e);
       };
       const nativeTouchEnd = (e: TouchEvent) => {
-        // @ts-expect-error: React handler expects React.TouchEvent, but only uses touches/preventDefault
         handleTouchEnd(e);
       };
 

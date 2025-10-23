@@ -19,10 +19,10 @@ import {
   handleDockItemClick,
 } from "@/utils/dockHandlers";
 import SidebarRight from "./sidebar-right/SidebarRight";
-import DockNavigation from "./DockNavigation";
+import DockComponent from "../../atoms/DockComponent";
 import RunButton from "./RunButton";
 import ZoomIndicator from "./ZoomIndicator";
-import { type Tool } from "./AnnotationLayer";
+import { type Tool } from "./annotation-layer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +41,7 @@ const AUTO_SAVE_INTERVAL_MS = 2500;
 const WorkflowEditorContent: React.FC = () => {
   // Annotation persistence across fullscreen
   const annotationLayerRef = useRef<
-    import("./AnnotationLayer").AnnotationLayerHandle | null
+    import("./annotation-layer").AnnotationLayerHandle | null
   >(null);
 
   // Use refs to store annotation state to avoid unnecessary effect re-runs
@@ -369,7 +369,7 @@ const WorkflowEditorContent: React.FC = () => {
               />
 
               {/* Dock Navigation - positioned in top-left of workflow editor */}
-              <DockNavigation
+              <DockComponent
                 collapsible={false}
                 position="top-left"
                 responsive="top-left"

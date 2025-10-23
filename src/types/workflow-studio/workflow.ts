@@ -369,20 +369,6 @@ export interface WorkflowFooterProps {
   edgeCount: number;
 }
 
-// Glow Wrapper Props
-export interface GlowWrapperProps {
-  children: React.ReactNode;
-  glowType: GlowType;
-  className?: string;
-  enabled?: boolean;
-}
-
-export interface DatabaseGlowWrapperProps {
-  children: React.ReactNode;
-  glowType: GlowType;
-  className?: string;
-}
-
 // Workflow Editor Summary Props
 export interface WorkflowEditorSummaryProps {
   value: number;
