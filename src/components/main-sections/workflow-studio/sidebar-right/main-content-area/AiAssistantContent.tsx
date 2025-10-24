@@ -14,10 +14,10 @@ const AiAssistantContent = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(
-    "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"
-  );
-  const [showKeyInput, setShowKeyInput] = useState(true);
+  console.log("API Key:", process.env.NEXT_PUBLIC_OPENROUTER_API_KEY);
+  const apiKeyFromEnv = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+  const [apiKey, setApiKey] = useState(apiKeyFromEnv || "");
+  const [showKeyInput, setShowKeyInput] = useState(!apiKeyFromEnv);
   const [showCorsInfo, setShowCorsInfo] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -29,6 +29,13 @@ const AiAssistantContent = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-start with greeting message if API key is available from environment
+  useEffect(() => {
+    if (apiKeyFromEnv && messages.length === 0) {
+      setMessages([greetingMessage()]);
+    }
+  }, [apiKeyFromEnv, messages.length]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
