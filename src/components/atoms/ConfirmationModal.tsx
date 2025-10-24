@@ -52,7 +52,7 @@ export function ConfirmationModal({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="gap-3">
           <Button variant="outline" onClick={handleCancel}>
             {cancelText}
           </Button>

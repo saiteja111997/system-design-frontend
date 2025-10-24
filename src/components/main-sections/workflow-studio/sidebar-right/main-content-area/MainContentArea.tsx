@@ -66,10 +66,16 @@ const MainContentArea: React.FC<MainContentAreaProps> = ({
             duration: 0.25,
             ease: "easeOut",
           }}
-          className="space-y-4 h-full overflow-y-auto"
+          className={`space-y-4 h-full ${
+            selectedTab === "ai-assistant" ? "" : "overflow-y-auto"
+          }`}
         >
           {/* Selected Tab Content */}
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600 min-h-0">
+          <div
+            className={`bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600 min-h-0 ${
+              selectedTab === "ai-assistant" ? "flex flex-col h-full" : ""
+            }`}
+          >
             {getSelectedTabContent()}
           </div>
         </motion.div>
