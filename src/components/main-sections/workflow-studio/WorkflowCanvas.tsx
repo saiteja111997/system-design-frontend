@@ -113,13 +113,16 @@ export const WorkflowCanvas = forwardRef<
       if (!canvasDiv) return;
 
       const nativeTouchStart = (e: TouchEvent) => {
-        handleTouchStart(e);
+        // Cast native TouchEvent to React TouchEvent via unknown
+        handleTouchStart(e as unknown as React.TouchEvent<Element>);
       };
+
       const nativeTouchMove = (e: TouchEvent) => {
-        handleTouchMove(e);
+        handleTouchMove(e as unknown as React.TouchEvent<Element>);
       };
+
       const nativeTouchEnd = (e: TouchEvent) => {
-        handleTouchEnd(e);
+        handleTouchEnd(e as unknown as React.TouchEvent<Element>);
       };
 
       canvasDiv.addEventListener("touchstart", nativeTouchStart, {
@@ -156,7 +159,7 @@ export const WorkflowCanvas = forwardRef<
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         className={cn(
-          "flex-1 relative overflow-hidden bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
+          "canvas-container flex-1 relative overflow-hidden bg-gray-50 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
           isAnnotationLayerVisible && activeTool !== "select"
             ? "cursor-crosshair"
             : "cursor-grab active:cursor-grabbing"
@@ -175,27 +178,26 @@ export const WorkflowCanvas = forwardRef<
         {/* Fixed background grid */}
         <CanvasGrid />
 
-        {/* Transform container - both layers move/scale together with canvasTransform */}
+        {/* Transform container - only workflow layer scales/moves */}
         <div
-          className="absolute inset-0 w-full h-full"
+          className="flex justify-center items-center workflow-and-annotation-container absolute z-20 inset-0 !w-full !h-full"
           style={getCanvasTransformStyle()}
         >
-          {/* Workflow Layer - handles nodes, edges */}
-          <WorkflowLayer
-            nodes={nodes}
-            edges={edges}
-            tempLine={tempLine}
-            selectedNode={selectedNode}
-            selectedEdge={selectedEdge}
-            draggingNode={draggingNode}
-            nodeHandlers={nodeHandlers}
-            edgeHandlers={edgeHandlers}
-            runCode={runCode}
-          />
+            {/* Workflow Layer - handles nodes, edges */}
+            <WorkflowLayer
+              nodes={nodes}
+              edges={edges}
+              tempLine={tempLine}
+              selectedNode={selectedNode}
+              selectedEdge={selectedEdge}
+              draggingNode={draggingNode}
+              nodeHandlers={nodeHandlers}
+              edgeHandlers={edgeHandlers}
+              runCode={runCode}
+            />
 
-          {/* Annotation Layer - inherits same transform as workflow */}
-          {isAnnotationLayerVisible && (
-            <div className="absolute inset-0 z-20 w-full h-full pointer-events-none">
+            {/* Annotation Layer - covers full viewport but content scales with canvas */}
+            {isAnnotationLayerVisible && (
               <AnnotationLayer
                 key="annotation-layer-stable"
                 ref={handleAnnotationLayerRef}
@@ -208,8 +210,7 @@ export const WorkflowCanvas = forwardRef<
                     : "pointer-events-auto"
                 )}
               />
-            </div>
-          )}
+            )}
         </div>
       </motion.div>
     );

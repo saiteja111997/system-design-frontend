@@ -54,7 +54,104 @@ export function useCanvasSetup() {
     setIsReady(true);
   }, []);
 
+  // ResizeObserver to watch for container size changes due to dynamic scaling
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const setupResizeObserver = useCallback(() => {
+    if (!containerRef.current || !fabricCanvasRef.current || !canvasRef.current)
+      return;
+
+    // Clean up existing observer
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+    }
+
+    // Create new ResizeObserver to watch container size changes
+    resizeObserverRef.current = new ResizeObserver((entries) => {
+      // Clear any pending resize to debounce
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+
+      // Debounce resize operations to avoid performance issues during rapid zoom changes
+      resizeTimeoutRef.current = setTimeout(() => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+
+          // Only resize if dimensions actually changed significantly (avoid micro-changes)
+          const threshold = 1; // 1px threshold to avoid unnecessary updates
+          const widthChanged =
+            Math.abs(width - containerSize.width) > threshold;
+          const heightChanged =
+            Math.abs(height - containerSize.height) > threshold;
+
+          if (widthChanged || heightChanged) {
+            const newSize = { width, height };
+
+            const canvas = fabricCanvasRef.current;
+            if (canvas && canvasRef.current) {
+              // Use requestAnimationFrame for smooth resize
+              requestAnimationFrame(() => {
+                try {
+                  // Resize the Fabric.js canvas
+                  canvas.setDimensions(newSize);
+
+                  // Resize the underlying HTML canvas element
+                  setCanvasSize(canvasRef.current!, width, height);
+
+                  // Update our tracked container size
+                  setContainerSize(newSize);
+
+                  // Re-render the canvas
+                  canvas.renderAll();
+                } catch (error) {
+                  console.warn(
+                    "[AnnotationLayer] Error during canvas resize:",
+                    error
+                  );
+                }
+              });
+            }
+          }
+        }
+      }, 16); // ~60fps debounce (16ms)
+    });
+
+    // Start observing the container
+    resizeObserverRef.current.observe(containerRef.current);
+  }, [containerSize.width, containerSize.height]);
+
+  // Setup ResizeObserver when canvas is ready
+  useEffect(() => {
+    if (isReady) {
+      setupResizeObserver();
+    }
+
+    return () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
+    };
+  }, [isReady, setupResizeObserver]);
+
   const cleanup = useCallback(() => {
+    // Clean up resize timeout
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
+      resizeTimeoutRef.current = null;
+    }
+
+    // Clean up ResizeObserver
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+      resizeObserverRef.current = null;
+    }
+
+    // Clean up Fabric.js canvas
     disposeCanvas(fabricCanvasRef.current);
     fabricCanvasRef.current = null;
   }, []);

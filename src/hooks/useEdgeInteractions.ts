@@ -10,6 +10,7 @@ export const useEdgeInteractions = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
 
   // Zustand selectors - subscribe only to what we need
+  const edges = useWorkflowStore((state) => state.edges);
   const selectedEdge = useWorkflowStore((state) => state.selectedEdge);
   const sidebarRightExpanded = useWorkflowStore(
     (state) => state.sidebarRightExpanded
@@ -27,6 +28,8 @@ export const useEdgeInteractions = () => {
   // Edge selection with toggle behavior and logging
   const handleEdgeSelect = useCallback(
     (edgeId: string) => {
+      const selectedEdgeObject = edges.find((edge) => edge.id === edgeId);
+      console.log("🔗 Edge clicked - Full edge object:", selectedEdgeObject);
       if (selectedEdge === edgeId) {
         // console.log("🔗 Edge Already Selected - Keeping Selection:", edgeId);
         return;
@@ -43,6 +46,7 @@ export const useEdgeInteractions = () => {
       setSelectedTab("selected-edge/node");
     },
     [
+      edges,
       selectedEdge,
       setSelectedEdge,
       setSelectedNode,

@@ -29,7 +29,7 @@ export const WorkflowHeader: React.FC<WorkflowHeaderProps> = () => {
     >
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
-          System Design Workflow Editor
+          System Design Canvas
         </h1>
         <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">
           Drag nodes • Drag from output to create connections • Click to select

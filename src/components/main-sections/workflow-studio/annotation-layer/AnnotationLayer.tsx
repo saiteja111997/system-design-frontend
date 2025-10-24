@@ -25,7 +25,7 @@ export const AnnotationLayer = forwardRef<
     <div
       ref={state.containerRef}
       className={cn(
-        "annotation-layer-container relative w-full h-full overflow-hidden",
+        "annotation-layer-container absolute inset-0 z-20 w-full h-full overflow-hidden",
         props.className
       )}
       tabIndex={0}

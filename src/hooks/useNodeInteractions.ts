@@ -56,6 +56,10 @@ export const useNodeInteractions = ({
         return;
       }
 
+      // Find and log the full node object
+      const selectedNodeObject = nodes.find((node) => node.id === nodeId);
+      console.log("🎯 Node clicked - Full node object:", selectedNodeObject);
+
       // If node is already selected, don't deselect it (keep it selected)
       // This prevents deselection when delete button click bubbles up
       if (selectedNode === nodeId) {
@@ -74,6 +78,7 @@ export const useNodeInteractions = ({
       setSelectedTab("selected-edge/node");
     },
     [
+      nodes,
       selectedNode,
       setSelectedNode,
       setSelectedEdge,
@@ -203,7 +208,6 @@ export const useNodeInteractions = ({
   // Delete node
   const handleNodeDelete = useCallback(
     (nodeId: number) => {
-
       deleteNode(nodeId);
 
       console.log("🗑️ Node Deleted Successfully:", nodeId);
